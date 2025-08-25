@@ -21,22 +21,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { inviteMember } from "@/lib/members";
 import { Invite } from "@/types/members";
 
 const inviteSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  role: z.enum(["ADMIN", "MEMBER", "VIEWER"], {
-    required_error: "Please select a role",
-  }),
 });
 
 type InviteForm = z.infer<typeof inviteSchema>;
@@ -56,7 +46,6 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
     resolver: zodResolver(inviteSchema),
     defaultValues: {
       email: "",
-      role: "MEMBER",
     },
   });
 
@@ -65,7 +54,6 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
     try {
       const invite = await inviteMember({
         email: data.email,
-        role: data.role,
       });
       setInviteResult(invite);
       
@@ -141,29 +129,6 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="VIEWER">Viewer</SelectItem>
-                        <SelectItem value="MEMBER">Member</SelectItem>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

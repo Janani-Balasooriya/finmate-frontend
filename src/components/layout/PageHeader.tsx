@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { SettingsModal } from "@/components/modals/SettingsModal";
 import { Settings, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth } from "@/lib/auth";
 
 interface PageHeaderProps {
   title: string;
@@ -13,10 +15,14 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, userName = "Janani Balasooriya", avatarUrl }: PageHeaderProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Add logout logic here
-    console.log("Logout clicked");
+    // Clear authentication data
+    auth.logout();
+    
+    // Redirect to login page
+    navigate("/auth");
   };
 
   return (
