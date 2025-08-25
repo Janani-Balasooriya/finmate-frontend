@@ -1,4 +1,4 @@
-type Role = "OWNER" | "ADMIN" | "MEMBER" | "VIEWER";
+type Role = "ADMIN" | "MEMBER";
 type Status = "active" | "invited" | "pending" | "expired";
 
 export type Member = {
@@ -14,7 +14,7 @@ export type Member = {
 export type Invite = {
   id: string;
   email: string;
-  role: Exclude<Role, "OWNER">;
+  role: "MEMBER"; // All invitations are for MEMBER role
   status: "pending" | "sent" | "expired" | "revoked";
   invitedAt: string;
   expiresAt?: string | null;
