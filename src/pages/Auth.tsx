@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { authApi } from "@/lib/api.auth";
+import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/auth";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -16,11 +20,71 @@ const Auth = () => {
     rememberMe: false
   });
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (auth.isAuthenticated()) {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login/signup - redirect to dashboard
-    navigate("/");
+    
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      if (isLogin) {
+        // Login
+        await authApi.login({
+          email: formData.email,
+          password: formData.password,
+        });
+        
+        // Get user info
+        await authApi.me();
+        
+        toast({
+          title: "Success",
+          description: "Welcome back!",
+        });
+        
+        navigate("/");
+      } else {
+        // Register
+        await authApi.register({
+          email: formData.email,
+          password: formData.password,
+          name: formData.email.split('@')[0], // Use email prefix as name for now
+        });
+        
+        toast({
+          title: "Success",
+          description: "Account created successfully!",
+        });
+        
+        navigate("/");
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Authentication failed",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -176,9 +240,10 @@ const Auth = () => {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg"
+                disabled={isLoading}
+                className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg disabled:opacity-50"
               >
-                {isLogin ? "Log In" : "Sign Up"}
+                {isLoading ? "Processing..." : (isLogin ? "Log In" : "Sign Up")}
               </Button>
 
               {/* Divider */}
