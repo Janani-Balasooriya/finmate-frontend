@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { UserProvider } from "./contexts/UserContext";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Income from "./pages/Income";
@@ -26,28 +27,30 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<Dashboard />} />
-            <Route path="income" element={<Income />} />
-            <Route path="expenses" element={<Expenses />} />
-            <Route path="budgets" element={<Budgets />} />
-            <Route path="shared-goals" element={<SharedGoals />} />
-            <Route path="subscriptions" element={<Subscriptions />} />
-            <Route path="settings" element={<SettingsLayout />}>
-              <Route path="profile" element={<ProfileSettingsPage />} />
-              <Route path="members" element={<MembersPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
+        <UserProvider>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<Dashboard />} />
+              <Route path="income" element={<Income />} />
+              <Route path="expenses" element={<Expenses />} />
+              <Route path="budgets" element={<Budgets />} />
+              <Route path="shared-goals" element={<SharedGoals />} />
+              <Route path="subscriptions" element={<Subscriptions />} />
+              <Route path="settings" element={<SettingsLayout />}>
+                <Route path="profile" element={<ProfileSettingsPage />} />
+                <Route path="members" element={<MembersPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+              </Route>
             </Route>
-          </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </UserProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

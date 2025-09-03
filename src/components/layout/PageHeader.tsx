@@ -6,6 +6,7 @@ import { Settings, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "@/lib/auth";
+import { useUser } from "@/contexts/UserContext";
 
 interface PageHeaderProps {
   title: string;
@@ -13,9 +14,13 @@ interface PageHeaderProps {
   avatarUrl?: string;
 }
 
-export function PageHeader({ title, userName = "Janani Balasooriya", avatarUrl }: PageHeaderProps) {
+export function PageHeader({ title, userName, avatarUrl }: PageHeaderProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, loading } = useUser();
+
+  // Use provided userName prop or fall back to context user name
+  const displayName = userName || user?.name || 'User';
 
   const handleLogout = () => {
     // Clear authentication data
@@ -33,14 +38,16 @@ export function PageHeader({ title, userName = "Janani Balasooriya", avatarUrl }
             <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
             
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">{userName}</span>
+              <span className="text-sm text-muted-foreground">
+                {loading ? 'Loading...' : displayName}
+              </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-8 w-8 rounded-full p-0 hover:bg-accent">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={avatarUrl || "/placeholder.svg"} alt="User" />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {userName?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'JB'}
+                        {loading ? '...' : displayName?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>

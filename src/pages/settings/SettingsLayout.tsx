@@ -3,6 +3,7 @@ import { Settings, User, Users, Bell } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
+import { useUser } from "@/contexts/UserContext";
 
 const settingsNavItems = [
   {
@@ -27,7 +28,20 @@ const settingsNavItems = [
 
 export function SettingsLayout() {
   const location = useLocation();
+  const { user } = useUser();
   const currentTab = location.pathname.split('/')[2] || "profile";
+
+  // Filter navigation items based on user role
+  const filteredNavItems = settingsNavItems.filter(item => {
+    // Only show Members tab for ADMIN users
+    if (item.id === "members") {
+      return user?.role === "ADMIN";
+    }
+    return true; // Show all other tabs
+  });
+
+  // Adjust grid columns based on number of visible tabs
+  const gridCols = filteredNavItems.length === 3 ? "grid-cols-3" : "grid-cols-2";
 
   return (
     <div className="mx-auto max-w-6xl px-6 lg:px-8 space-y-6">
@@ -45,8 +59,8 @@ export function SettingsLayout() {
       {/* Settings Navigation */}
       <Card className="rounded-xl border bg-card shadow-sm">
         <Tabs value={currentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 rounded-t-xl h-auto p-1">
-            {settingsNavItems.map((item) => (
+          <TabsList className={`grid w-full ${gridCols} rounded-t-xl h-auto p-1`}>
+            {filteredNavItems.map((item) => (
               <TabsTrigger 
                 key={item.id} 
                 value={item.id}

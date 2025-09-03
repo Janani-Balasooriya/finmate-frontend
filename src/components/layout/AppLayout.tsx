@@ -21,7 +21,7 @@ export function AppLayout() {
       <Sidebar />
       
       <div className="flex-1 ml-64">
-        <PageHeader title={title} userName="Janani Balasooriya" />
+        <PageHeader title={title} />
         
         <main className="mx-auto max-w-screen-2xl px-6 lg:px-8 pt-6">
           <Outlet />

@@ -28,6 +28,10 @@ export const authApi = {
         // Store token and user data
         auth.setToken(response.data.accessToken);
         auth.setUser(response.data.user);
+        
+        // Force a small delay to ensure the event is processed
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         return response.data;
       } else {
         throw new Error(response.message || response.error || 'Login failed');
@@ -76,6 +80,7 @@ export const authApi = {
     email: string;
     password: string;
     name: string;
+    inviteToken?: string;
   }): Promise<LoginResponse> {
     try {
       const registerResponse = await httpClient.post<ApiResponse<User>>('/auth/register', userData, { skipAuth: true });

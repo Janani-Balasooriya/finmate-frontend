@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,14 +13,30 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    rememberMe: false
+    rememberMe: false,
+    inviteToken: ""
   });
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Check for invitation token in URL parameters
+  useEffect(() => {
+    const inviteToken = searchParams.get('token');
+    if (inviteToken) {
+      setFormData(prev => ({ ...prev, inviteToken }));
+      // If there's an invitation token, default to registration mode
+      setIsLogin(false);
+      toast({
+        title: "Invitation Detected",
+        description: "You've been invited to join a team. Please complete your registration.",
+      });
+    }
+  }, [searchParams, toast]);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -66,6 +82,7 @@ const Auth = () => {
           email: formData.email,
           password: formData.password,
           name: formData.email.split('@')[0], // Use email prefix as name for now
+          inviteToken: formData.inviteToken
         });
         
         toast({
@@ -104,41 +121,11 @@ const Auth = () => {
           
           {/* Illustration Placeholder */}
           <div className="w-full max-w-lg mx-auto">
-            <div className="relative">
-              {/* Family illustration with coins and house */}
-              <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg p-8 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-green-400/20 to-transparent"></div>
-                
-                {/* House illustration */}
-                <div className="relative z-10 flex items-end justify-center space-x-4">
-                  <div className="w-32 h-24 bg-yellow-300 rounded-t-full relative">
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-yellow-600 rounded"></div>
-                    <div className="absolute top-2 left-1/4 w-4 h-4 bg-purple-400 rounded"></div>
-                    <div className="absolute top-8 right-1/4 w-4 h-4 bg-purple-400 rounded"></div>
-                  </div>
-                  
-                  {/* Coins */}
-                  <div className="space-y-2">
-                    <div className="w-8 h-8 bg-yellow-400 rounded-full border-2 border-yellow-600"></div>
-                    <div className="w-10 h-10 bg-yellow-400 rounded-full border-2 border-yellow-600"></div>
-                    <div className="w-12 h-12 bg-yellow-400 rounded-full border-2 border-yellow-600"></div>
-                  </div>
-                  
-                  {/* Money/Bills */}
-                  <div className="w-16 h-10 bg-green-500 rounded transform rotate-12"></div>
-                </div>
-                
-                {/* Trees */}
-                <div className="absolute bottom-0 left-4">
-                  <div className="w-6 h-6 bg-green-500 rounded-full"></div>
-                  <div className="w-2 h-8 bg-green-700 mx-auto"></div>
-                </div>
-                <div className="absolute bottom-0 right-8">
-                  <div className="w-8 h-8 bg-green-500 rounded-full"></div>
-                  <div className="w-2 h-10 bg-green-700 mx-auto"></div>
-                </div>
-              </div>
-            </div>
+          <img
+            src="/src/assets/pic 1 1.svg"
+            alt="FinMate Illustration"
+            className="w-full h-auto rounded-xl shadow-lg"
+          />
           </div>
         </div>
 
@@ -147,11 +134,19 @@ const Auth = () => {
           <div className="bg-white rounded-2xl shadow-2xl p-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                {isLogin ? "Welcome Back" : "Create Account"}
+                {isLogin ? "Welcome Back" : (formData.inviteToken ? "Join Team" : "Create Account")}
               </h2>
               <p className="text-slate-600">
-                {isLogin ? "Please sign in to your account" : "Please fill in your information"}
+                {isLogin ? "Please sign in to your account" : 
+                 formData.inviteToken ? "You've been invited to join a team. Please complete your registration." :
+                 "Please fill in your information"}
               </p>
+              {formData.inviteToken && (
+                <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm bg-emerald-100 text-emerald-800">
+                  <span className="mr-2">🎉</span>
+                  Invitation Accepted
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">

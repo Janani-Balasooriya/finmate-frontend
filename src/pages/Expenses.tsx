@@ -41,6 +41,7 @@ const expenseData = [{
 const Expenses = () => {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
+  const [categoryItem, setCategoryItem] = useState("");
   const [type, setType] = useState("");
   const [date, setDate] = useState("");
   const [account, setAccount] = useState("");
@@ -176,8 +177,26 @@ const Expenses = () => {
                 <Label htmlFor="amount">Amount</Label>
                 <Input id="amount" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
               </div>
-              
               <div className="space-y-2">
+                <Label htmlFor="account">Account</Label>
+                <Select value={account} onValueChange={setAccount}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bank">Bank Account</SelectItem>
+                    <SelectItem value="credit">Credit Card</SelectItem>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="digital">Digital Wallet</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
@@ -195,10 +214,20 @@ const Expenses = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
+                  <Label htmlFor="categoryItem">Category Item</Label>
+                  <Select value={categoryItem} onValueChange={setCategoryItem}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="groceries">veggies</SelectItem>
+                      <SelectItem value="transport">Fruits</SelectItem>
+                      <SelectItem value="bills">Eating Out</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              {/* <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>
                 <Select value={type} onValueChange={setType}>
                   <SelectTrigger>
@@ -209,22 +238,9 @@ const Expenses = () => {
                     <SelectItem value="shared">Shared</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
               
-              <div className="space-y-2">
-                <Label htmlFor="account">Account</Label>
-                <Select value={account} onValueChange={setAccount}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bank">Bank Account</SelectItem>
-                    <SelectItem value="credit">Credit Card</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="digital">Digital Wallet</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              
             </div>
             
             <div className="space-y-2">
@@ -235,10 +251,10 @@ const Expenses = () => {
               </div>
             </div>
             
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="note">Note (Optional)</Label>
               <Textarea id="note" placeholder="Add a note..." className="resize-none" rows={3} value={note} onChange={e => setNote(e.target.value)} />
-            </div>
+            </div> */}
             
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>

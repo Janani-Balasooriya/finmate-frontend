@@ -1,15 +1,36 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUser } from "@/contexts/UserContext";
 
 export function DashboardHeader() {
+  const { user, loading } = useUser();
+
+  if (loading) {
+    return (
+      <header className="flex justify-between items-center p-6 bg-background border-b border-border">
+        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+        
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">Loading...</span>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src="/placeholder.svg" alt="User" />
+            <AvatarFallback className="bg-primary text-primary-foreground">...</AvatarFallback>
+          </Avatar>
+        </div>
+      </header>
+    );
+  }
+
+  const userInitials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
+
   return (
     <header className="flex justify-between items-center p-6 bg-background border-b border-border">
       <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
       
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">Janani Balasooriya</span>
+        <span className="text-sm text-muted-foreground">{user?.name || 'User'}</span>
         <Avatar className="h-8 w-8">
           <AvatarImage src="/placeholder.svg" alt="User" />
-          <AvatarFallback className="bg-primary text-primary-foreground">JB</AvatarFallback>
+          <AvatarFallback className="bg-primary text-primary-foreground">{userInitials}</AvatarFallback>
         </Avatar>
       </div>
     </header>

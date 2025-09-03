@@ -38,7 +38,7 @@ export function ProfileSettingsPage() {
   return (
     <div className="space-y-6">
       {/* Profile Information */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -84,10 +84,10 @@ export function ProfileSettingsPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Preferences */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
@@ -145,7 +145,7 @@ export function ProfileSettingsPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Appearance */}
       <Card>
