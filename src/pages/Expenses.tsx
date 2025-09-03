@@ -14,7 +14,7 @@ const expenseData = [{
   id: 1,
   date: "Jan 15, 2025",
   category: "Groceries",
-  description: "Weekly shopping",
+  categoryItem: "Veggies",
   amount: "Rs. 4500",
   type: "Individual",
   account: "Credit Card",
@@ -23,7 +23,7 @@ const expenseData = [{
   id: 2,
   date: "Jan 14, 2025",
   category: "Transport",
-  description: "Petrol",
+  categoryItem: "Petrol",
   amount: "Rs. 5000",
   type: "Shared",
   account: "Bank Account",
@@ -32,7 +32,7 @@ const expenseData = [{
   id: 3,
   date: "Jan 13, 2025",
   category: "Bills",
-  description: "Electricity bill",
+  categoryItem: "Electricity bill",
   amount: "Rs. 6000",
   type: "Shared",
   account: "Bank Account",
@@ -46,6 +46,7 @@ const Expenses = () => {
   const [date, setDate] = useState("");
   const [account, setAccount] = useState("");
   const [note, setNote] = useState("");
+  const [amountSortOrder, setAmountSortOrder] = useState("none");
 
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -66,7 +67,7 @@ const Expenses = () => {
     setEditType(expense.type.toLowerCase());
     setEditAccount(expense.account.toLowerCase().replace(" ", ""));
     setEditDate(new Date(expense.date).toISOString().split('T')[0]);
-    setEditNote(expense.description);
+    setEditNote(expense.categoryItem);
     setIsEditDialogOpen(true);
   };
   return <div className="space-y-6">
@@ -102,6 +103,33 @@ const Expenses = () => {
                     <SelectItem value="entertainment">Entertainment</SelectItem>
                   </SelectContent>
                 </Select>
+
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="All Category Items" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Category Items</SelectItem>
+                    <SelectItem value="veggies">Veggies</SelectItem>
+                    <SelectItem value="petrol">Petrol</SelectItem>
+                    <SelectItem value="electricity">Electricity bill</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={amountSortOrder}
+                  onValueChange={setAmountSortOrder}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Sort by Amount" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Sort</SelectItem>
+                    <SelectItem value="high-to-low">Amount: High to Low</SelectItem>
+                    <SelectItem value="low-to-high">Amount: Low to High</SelectItem>
+                  </SelectContent>
+                </Select>
                 
                 <Input type="date" placeholder="mm/dd/yyyy" className="w-40" />
                 
@@ -119,9 +147,8 @@ const Expenses = () => {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Category Item</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Type</TableHead>
                     <TableHead>Account</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -137,13 +164,8 @@ const Expenses = () => {
                           <span className="text-sm font-medium">{expense.category}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{expense.description}</TableCell>
+                      <TableCell className="text-muted-foreground">{expense.categoryItem}</TableCell>
                       <TableCell className="font-semibold text-destructive">{expense.amount}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={expense.type === 'Individual' ? 'bg-blue-100 text-blue-700' : 'bg-success/10 text-success'}>
-                          {expense.type}
-                        </Badge>
-                      </TableCell>
                       <TableCell>{expense.account}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
