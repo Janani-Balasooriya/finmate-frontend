@@ -186,6 +186,27 @@ const Expenses = () => {
             </CardContent>
       </Card>
 
+      {/* Total Expenses Summary */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold text-foreground">Total Expenses</h3>
+              <p className="text-sm text-muted-foreground">Sum of all expenses in the table</p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-destructive">
+                Rs. {expenseData.reduce((total, expense) => {
+                  const amount = parseFloat(expense.amount.replace("Rs. ", "").replace(",", ""));
+                  return total + amount;
+                }, 0).toLocaleString()}
+              </div>
+              <p className="text-sm text-muted-foreground">{expenseData.length} expense{expenseData.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Add Expense Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
