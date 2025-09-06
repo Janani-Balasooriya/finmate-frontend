@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Calendar, Edit, Trash2, Plus, ShoppingCart, Car, Zap } from "lucide-react";
+import { Calendar, Edit, Trash2, Plus, ShoppingCart, Car, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 const expenseData = [{
   id: 1,
   date: "Jan 15, 2025",
@@ -48,6 +48,10 @@ const Expenses = () => {
   const [note, setNote] = useState("");
   const [amountSortOrder, setAmountSortOrder] = useState("recent");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -60,6 +64,22 @@ const Expenses = () => {
   const [editDate, setEditDate] = useState("");
   const [editAccount, setEditAccount] = useState("");
   const [editNote, setEditNote] = useState("");
+
+  // Pagination logic
+  const totalPages = Math.ceil(expenseData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentExpenses = expenseData.slice(startIndex, endIndex);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(parseInt(newItemsPerPage));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
   const handleEditClick = expense => {
     setEditingExpense(expense);
     setEditAmount(expense.amount.replace("Rs. ", ""));
@@ -83,12 +103,12 @@ const Expenses = () => {
           {/* Expense History */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-end ">
+              {/* <div className="flex items-center justify-end ">
                 
                 <Badge variant="secondary" className="bg-destructive/10 text-destructive border-destructive/20">
                   You've spent $1,580 this month
                 </Badge>
-              </div>
+              </div> */}
               
               <div className="flex items-center gap-4 mt-4">
                 <Select defaultValue="all">
@@ -154,7 +174,7 @@ const Expenses = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenseData.map(expense => <TableRow key={expense.id}>
+                  {currentExpenses.map(expense => <TableRow key={expense.id}>
                       <TableCell className="font-medium">{expense.date}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -184,6 +204,67 @@ const Expenses = () => {
                 </TableBody>
               </Table>
             </CardContent>
+            
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between px-6 py-4 border-t">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="items-per-page" className="text-sm">Show</Label>
+                  <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">per page</span>
+                </div>
+                
+                <div className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1} to {Math.min(endIndex, expenseData.length)} of {expenseData.length} expenses
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "secondary" : "outline"}
+                      size="sm"
+                      className="w-8 h-8 p-0"
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
       </Card>
 
       {/* Total Expenses Summary */}
@@ -192,7 +273,7 @@ const Expenses = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h3 className="text-lg font-semibold text-foreground">Total Expenses</h3>
-              <p className="text-sm text-muted-foreground">Sum of all expenses in the table</p>
+              <p className="text-sm text-muted-foreground">Sum of all expenses this month</p>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-destructive">
