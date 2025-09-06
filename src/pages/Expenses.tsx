@@ -66,7 +66,7 @@ const Expenses = () => {
   const [deletingExpenseId, setDeletingExpenseId] = useState(null);
   const [editAmount, setEditAmount] = useState("");
   const [editCategory, setEditCategory] = useState("");
-  const [editType, setEditType] = useState("");
+  const [editCategoryItem, setEditCategoryItem] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editAccount, setEditAccount] = useState("");
   const [editNote, setEditNote] = useState("");
@@ -131,7 +131,7 @@ const Expenses = () => {
     setEditingExpense(expense);
     setEditAmount(expense.amount.replace("Rs. ", ""));
     setEditCategory(expense.category.toLowerCase());
-    setEditType(expense.type.toLowerCase());
+    setEditCategoryItem(expense.categoryItem);
     setEditAccount(expense.account.toLowerCase().replace(" ", ""));
     setEditDate(new Date(expense.date).toISOString().split('T')[0]);
     setEditNote(expense.categoryItem);
@@ -158,6 +158,7 @@ const Expenses = () => {
               </div> */}
               
               <div className="flex items-center gap-4 mt-4">
+                
                 <Select defaultValue="all">
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="All Categories" />
@@ -184,20 +185,6 @@ const Expenses = () => {
                   </SelectContent>
                 </Select>
 
-                <Select
-                  value={amountSortOrder}
-                  onValueChange={setAmountSortOrder}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Sort by Amount" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recent">Recent</SelectItem>
-                    <SelectItem value="high-to-low">Amount: High to Low</SelectItem>
-                    <SelectItem value="low-to-high">Amount: Low to High</SelectItem>
-                  </SelectContent>
-                </Select>
-                
                 <Popover open={isDateRangePickerOpen} onOpenChange={setIsDateRangePickerOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -234,6 +221,22 @@ const Expenses = () => {
                     </div>
                   </PopoverContent>
                 </Popover>
+                
+                <Select
+                  value={amountSortOrder}
+                  onValueChange={setAmountSortOrder}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Sort by Amount" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Recent</SelectItem>
+                    <SelectItem value="high-to-low">Amount: High to Low</SelectItem>
+                    <SelectItem value="low-to-high">Amount: Low to High</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                
                 
                 {/* <Button variant="outline" size="icon">
                   <Calendar className="h-4 w-4" />
@@ -485,7 +488,23 @@ const Expenses = () => {
                 <Label htmlFor="edit-amount">Amount</Label>
                 <Input id="edit-amount" placeholder="0.00" value={editAmount} onChange={e => setEditAmount(e.target.value)} />
               </div>
-              
+              <div className="space-y-2">
+                <Label htmlFor="edit-account">Account</Label>
+                <Select value={editAccount} onValueChange={setEditAccount}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bank">Bank Account</SelectItem>
+                    <SelectItem value="credit">Credit Card</SelectItem>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="digital">Digital Wallet</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-category">Category</Label>
                 <Select value={editCategory} onValueChange={setEditCategory}>
@@ -504,33 +523,19 @@ const Expenses = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-type">Type</Label>
-                <Select value={editType} onValueChange={setEditType}>
+                <Label htmlFor="edit-categoryItem">Category Item</Label>
+                <Select value={editCategoryItem} onValueChange={setEditCategoryItem}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Individual" />
+                    <SelectValue placeholder="Select Category Item" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="individual">Individual</SelectItem>
-                    <SelectItem value="shared">Shared</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-account">Account</Label>
-                <Select value={editAccount} onValueChange={setEditAccount}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bank">Bank Account</SelectItem>
-                    <SelectItem value="credit">Credit Card</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="digital">Digital Wallet</SelectItem>
+                    <SelectItem value="veggies">Veggies</SelectItem>
+                    <SelectItem value="fruits">Fruits</SelectItem>
+                    <SelectItem value="eating-out">Eating Out</SelectItem>
+                    <SelectItem value="petrol">Petrol</SelectItem>
+                    <SelectItem value="electricity">Electricity bill</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -540,13 +545,8 @@ const Expenses = () => {
               <Label htmlFor="edit-date">Date</Label>
               <div className="relative">
                 <Input id="edit-date" type="date" value={editDate} onChange={e => setEditDate(e.target.value)} />
-                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-note">Note (Optional)</Label>
-              <Textarea id="edit-note" placeholder="Add a note..." className="resize-none" rows={3} value={editNote} onChange={e => setEditNote(e.target.value)} />
             </div>
             
             <div className="flex justify-end gap-3">
