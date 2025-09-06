@@ -9,7 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Calendar, Edit, Trash2, Plus, ShoppingCart, Car, Zap, ChevronLeft, ChevronRight } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon, Edit, Trash2, Plus, ShoppingCart, Car, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 const expenseData = [{
   id: 1,
   date: "Jan 15, 2025",
@@ -52,6 +54,10 @@ const Expenses = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Date range states
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+  const [isDateRangePickerOpen, setIsDateRangePickerOpen] = useState(false);
+
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -65,11 +71,42 @@ const Expenses = () => {
   const [editAccount, setEditAccount] = useState("");
   const [editNote, setEditNote] = useState("");
 
+  // Date range filtering logic
+  const filteredExpenses = expenseData.filter(expense => {
+    if (!dateRange.from && !dateRange.to) return true;
+    
+    const expenseDate = new Date(expense.date);
+    const fromDate = dateRange.from ? new Date(dateRange.from) : null;
+    const toDate = dateRange.to ? new Date(dateRange.to) : null;
+    
+    if (fromDate && toDate) {
+      return expenseDate >= fromDate && expenseDate <= toDate;
+    } else if (fromDate) {
+      return expenseDate >= fromDate;
+    } else if (toDate) {
+      return expenseDate <= toDate;
+    }
+    return true;
+  });
+
   // Pagination logic
-  const totalPages = Math.ceil(expenseData.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentExpenses = expenseData.slice(startIndex, endIndex);
+  const currentExpenses = filteredExpenses.slice(startIndex, endIndex);
+
+  // Date range display formatting
+  const formatDateRange = () => {
+    if (!dateRange.from && !dateRange.to) return "Select date range";
+    if (dateRange.from && dateRange.to) {
+      return `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`;
+    } else if (dateRange.from) {
+      return `From ${dateRange.from.toLocaleDateString()}`;
+    } else if (dateRange.to) {
+      return `Until ${dateRange.to.toLocaleDateString()}`;
+    }
+    return "Select date range";
+  };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -78,6 +115,16 @@ const Expenses = () => {
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(parseInt(newItemsPerPage));
     setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  const handleDateRangeChange = (range) => {
+    setDateRange(range);
+    setCurrentPage(1); // Reset to first page when changing date range
+  };
+
+  const clearDateRange = () => {
+    setDateRange({ from: undefined, to: undefined });
+    setCurrentPage(1);
   };
 
   const handleEditClick = expense => {
@@ -151,9 +198,42 @@ const Expenses = () => {
                   </SelectContent>
                 </Select>
                 
-                <Input type="date" placeholder="mm/dd/yyyy" className="w-40" />
-                
-                <Input type="date" placeholder="mm/dd/yyyy" className="w-40" />
+                <Popover open={isDateRangePickerOpen} onOpenChange={setIsDateRangePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-80 justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formatDateRange()}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="range"
+                      defaultMonth={dateRange.from}
+                      selected={dateRange}
+                      onSelect={handleDateRangeChange}
+                      numberOfMonths={2}
+                      className="rounded-md border"
+                    />
+                    <div className="flex justify-end gap-2 p-3 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearDateRange}
+                      >
+                        Clear
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => setIsDateRangePickerOpen(false)}
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 
                 {/* <Button variant="outline" size="icon">
                   <Calendar className="h-4 w-4" />
@@ -225,7 +305,7 @@ const Expenses = () => {
                 </div>
                 
                 <div className="text-sm text-muted-foreground">
-                  Showing {startIndex + 1} to {Math.min(endIndex, expenseData.length)} of {expenseData.length} expenses
+                  Showing {startIndex + 1} to {Math.min(endIndex, filteredExpenses.length)} of {filteredExpenses.length} expenses
                 </div>
               </div>
               
@@ -277,12 +357,12 @@ const Expenses = () => {
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-destructive">
-                Rs. {expenseData.reduce((total, expense) => {
+                Rs. {filteredExpenses.reduce((total, expense) => {
                   const amount = parseFloat(expense.amount.replace("Rs. ", "").replace(",", ""));
                   return total + amount;
                 }, 0).toLocaleString()}
               </div>
-              <p className="text-sm text-muted-foreground">{expenseData.length} expense{expenseData.length !== 1 ? 's' : ''}</p>
+              <p className="text-sm text-muted-foreground">{filteredExpenses.length} expense{filteredExpenses.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
         </CardContent>
