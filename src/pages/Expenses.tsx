@@ -46,7 +46,7 @@ const Expenses = () => {
   const [date, setDate] = useState("");
   const [account, setAccount] = useState("");
   const [note, setNote] = useState("");
-  const [amountSortOrder, setAmountSortOrder] = useState("none");
+  const [amountSortOrder, setAmountSortOrder] = useState("recent");
 
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -109,7 +109,7 @@ const Expenses = () => {
                     <SelectValue placeholder="All Category Items" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Category Items</SelectItem>
+                    <SelectItem value="all">All Items</SelectItem>
                     <SelectItem value="veggies">Veggies</SelectItem>
                     <SelectItem value="petrol">Petrol</SelectItem>
                     <SelectItem value="electricity">Electricity bill</SelectItem>
@@ -125,7 +125,7 @@ const Expenses = () => {
                     <SelectValue placeholder="Sort by Amount" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Sort</SelectItem>
+                    <SelectItem value="recent">Recent</SelectItem>
                     <SelectItem value="high-to-low">Amount: High to Low</SelectItem>
                     <SelectItem value="low-to-high">Amount: Low to High</SelectItem>
                   </SelectContent>
@@ -135,9 +135,9 @@ const Expenses = () => {
                 
                 <Input type="date" placeholder="mm/dd/yyyy" className="w-40" />
                 
-                <Button variant="outline" size="icon">
+                {/* <Button variant="outline" size="icon">
                   <Calendar className="h-4 w-4" />
-                </Button>
+                </Button> */}
               </div>
             </CardHeader>
             
