@@ -228,25 +228,6 @@ const SharedGoals = () => {
                   <Label htmlFor="deadline">Deadline</Label>
                   <Input id="deadline" type="date" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description (optional)</Label>
-                  <Textarea id="description" placeholder="Add details about this goal" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="participants">Invite Participants</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select participants to invite" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user1@example.com">John Doe (user1@example.com)</SelectItem>
-                      <SelectItem value="user2@example.com">Jane Smith (user2@example.com)</SelectItem>
-                      <SelectItem value="user3@example.com">Mike Johnson (user3@example.com)</SelectItem>
-                      <SelectItem value="user4@example.com">Sarah Wilson (user4@example.com)</SelectItem>
-                      <SelectItem value="user5@example.com">Alex Brown (user5@example.com)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="flex gap-2 pt-4">
                   <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white">
                     Create Goal
