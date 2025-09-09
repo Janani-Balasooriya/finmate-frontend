@@ -44,6 +44,7 @@ const Income = () => {
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
   const [accountNote, setAccountNote] = useState("");
+  const [isAddDatePickerOpen, setIsAddDatePickerOpen] = useState(false);
 
   // Date range and sorting (matching Expenses page controls)
   const [dateRange, setDateRange] = useState({ from: undefined as Date | undefined, to: undefined as Date | undefined });
@@ -379,10 +380,32 @@ const Income = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="date">Date</Label>
-                <div className="relative">
-                  <Input id="date" type="date" placeholder="mm/dd/yyyy" value={date} onChange={e => setDate(e.target.value)} />
-                  <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                </div>
+                <Popover open={isAddDatePickerOpen} onOpenChange={setIsAddDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date"
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? new Date(date).toLocaleDateString() : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={date ? new Date(date) : undefined}
+                      onSelect={(selected) => {
+                        if (selected) {
+                          const iso = new Date(selected).toISOString().split('T')[0];
+                          setDate(iso);
+                        }
+                      }}
+                      initialFocus
+                      className="rounded-md border"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
                         
