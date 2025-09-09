@@ -7,10 +7,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Utensils, Car, Gamepad2, ShoppingBag, Zap, Pencil, Trash2 } from "lucide-react";
+import { Plus, Utensils, Car, Gamepad2, ShoppingBag, Zap, Pencil, Trash2, PiggyBank, Heart, BookOpen, Home, Bus, Coffee, Gift, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { assignDistinctAccents } from "@/lib/accents";
 import { cn } from "@/lib/utils";
+import IconPicker from "@/components/IconPicker";
 import { Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -72,8 +73,11 @@ export default function Budgets() {
   const [newBudget, setNewBudget] = useState({
     name: "",
     amount: "",
-    category: ""
+    category: "",
+    icon: "utensils",
+    color: "bg-orange-500"
   });
+  const [iconSearchQuery, setIconSearchQuery] = useState("");
   const { toast } = useToast();
   
   // Assign distinct accent colors to budget categories
@@ -89,7 +93,9 @@ export default function Budgets() {
     setNewBudget({
       name: "",
       amount: "",
-      category: ""
+      category: "",
+      icon: "utensils",
+      color: "bg-orange-500"
     });
   };
   const handleEditBudget = (budget: any) => {
@@ -97,7 +103,9 @@ export default function Budgets() {
     setNewBudget({
       name: budget.name,
       amount: budget.budget.toString(),
-      category: budget.name.toLowerCase()
+      category: budget.name.toLowerCase(),
+      icon: (budget.iconKey ?? "utensils"),
+      color: budget.color ?? "bg-orange-500"
     });
     setIsEditModalOpen(true);
   };
@@ -181,6 +189,39 @@ export default function Budgets() {
       easing: 'easeOutQuart' as const
     }
   } as const;
+
+  // Icon options for category selection
+  const iconOptions: { key: string; label: string; Icon: any }[] = [
+    { key: "utensils", label: "Food", Icon: Utensils },
+    { key: "car", label: "Transportation", Icon: Car },
+    { key: "gamepad2", label: "Entertainment", Icon: Gamepad2 },
+    { key: "shopping-bag", label: "Shopping", Icon: ShoppingBag },
+    { key: "zap", label: "Utilities", Icon: Zap },
+    { key: "piggy-bank", label: "Savings", Icon: PiggyBank },
+    { key: "heart", label: "Health", Icon: Heart },
+    { key: "book-open", label: "Education", Icon: BookOpen },
+    { key: "home", label: "Home", Icon: Home },
+    { key: "bus", label: "Travel", Icon: Bus },
+    { key: "coffee", label: "Cafe", Icon: Coffee },
+    { key: "gift", label: "Gifts", Icon: Gift }
+  ];
+
+  const filteredIconOptions = iconOptions.filter(opt =>
+    opt.label.toLowerCase().includes(iconSearchQuery.toLowerCase()) ||
+    opt.key.toLowerCase().includes(iconSearchQuery.toLowerCase())
+  );
+
+  const colorOptions = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-yellow-500",
+    "bg-green-500",
+    "bg-teal-500",
+    "bg-red-500",
+    "bg-indigo-500",
+  ];
 
   return <div className="space-y-8">
       {/* Page Header */}
@@ -352,6 +393,35 @@ export default function Budgets() {
                 amount: e.target.value
               })} />
               </div>
+
+              {/* Icon selector */}
+              <div className="space-y-2">
+                <Label>Category Icon</Label>
+                <IconPicker
+                  value={newBudget.icon}
+                  onChange={(icon) => setNewBudget({ ...newBudget, icon })}
+                />
+              </div>
+
+              {/* Color selector */}
+              <div className="space-y-2">
+                <Label>Category Color</Label>
+                <div className="grid grid-cols-9 gap-2">
+                  {colorOptions.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setNewBudget({ ...newBudget, color: c })}
+                      className={cn(
+                        "h-8 w-8 rounded-full border",
+                        c,
+                        newBudget.color === c ? "ring-2 ring-offset-2 ring-primary" : ""
+                      )}
+                      aria-label={c}
+                    />
+                  ))}
+                </div>
+              </div>
               
             </div>
             
@@ -493,30 +563,7 @@ export default function Budgets() {
               amount: e.target.value
             })} />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-budget-category">Category</Label>
-              <Select value={newBudget.category} onValueChange={value => setNewBudget({
-              ...newBudget,
-              category: value
-            })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="food">Food & Dining</SelectItem>
-                  <SelectItem value="transportation">Transportation</SelectItem>
-                  <SelectItem value="entertainment">Entertainment</SelectItem>
-                  <SelectItem value="shopping">Shopping</SelectItem>
-                  <SelectItem value="utilities">Utilities</SelectItem>
-                  <SelectItem value="healthcare">Healthcare</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
-                  <SelectItem value="travel">Travel</SelectItem>
-                  <SelectItem value="home">Home & Garden</SelectItem>
-                  <SelectItem value="fitness">Fitness</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
           </div>
           
           <DialogFooter>
