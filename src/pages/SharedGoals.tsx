@@ -315,10 +315,6 @@ const SharedGoals = () => {
                                  </SelectContent>
                                </Select>
                              </div>
-                             <div className="space-y-2">
-                               <Label htmlFor="note">Note (optional)</Label>
-                               <Textarea id="note" placeholder="Add a note for this contribution" />
-                             </div>
                              <div className="flex gap-2 pt-4">
                                <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white">
                                  Add Contribution
@@ -392,7 +388,6 @@ const SharedGoals = () => {
                                         <TableHead className="text-xs">Date</TableHead>
                                         <TableHead className="text-xs">Account</TableHead>
                                         <TableHead className="text-xs">Participant</TableHead>
-                                        <TableHead className="text-xs">Note</TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -401,7 +396,6 @@ const SharedGoals = () => {
                                           <TableCell className="text-xs">{new Date(contribution.date).toLocaleDateString()}</TableCell>
                                           <TableCell className="text-xs">{contribution.account}</TableCell>
                                           <TableCell className="text-xs">{contribution.participant}</TableCell>
-                                          <TableCell className="text-xs">{contribution.note || '-'}</TableCell>
                                         </TableRow>)}
                                     </TableBody>
                                   </Table>
