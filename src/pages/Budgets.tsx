@@ -353,29 +353,6 @@ export default function Budgets() {
               })} />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="budget-category">Category</Label>
-                <Select value={newBudget.category} onValueChange={value => setNewBudget({
-                ...newBudget,
-                category: value
-              })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="food">Food & Dining</SelectItem>
-                    <SelectItem value="transportation">Transportation</SelectItem>
-                    <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="shopping">Shopping</SelectItem>
-                    <SelectItem value="utilities">Utilities</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="travel">Travel</SelectItem>
-                    <SelectItem value="home">Home & Garden</SelectItem>
-                    <SelectItem value="fitness">Fitness</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             
             <DialogFooter>
