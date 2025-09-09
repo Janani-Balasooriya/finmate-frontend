@@ -65,6 +65,7 @@ const Income = () => {
   const [editAccount, setEditAccount] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editNote, setEditNote] = useState("");
+  const [isEditDatePickerOpen, setIsEditDatePickerOpen] = useState(false);
   
   // Date range display formatting (same as Expenses)
   const formatDateRange = () => {
@@ -308,6 +309,27 @@ const Income = () => {
             </div>
       </Card>
 
+      {/* Total Income Summary */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold text-foreground">Total Income</h3>
+              <p className="text-sm text-muted-foreground">Sum of all incomes in range</p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-success">
+                Rs. {filteredIncomes.reduce((total, income) => {
+                  const amount = parseFloat(income.amount.replace("Rs. ", "").replace(",", ""));
+                  return total + amount;
+                }, 0).toLocaleString()}
+              </div>
+              <p className="text-sm text-muted-foreground">{filteredIncomes.length} income{filteredIncomes.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Add Income Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
@@ -425,10 +447,32 @@ const Income = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="edit-date">Date</Label>
-                <div className="relative">
-                  <Input id="edit-date" type="date" value={editDate} onChange={e => setEditDate(e.target.value)} />
-                  <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                </div>
+                <Popover open={isEditDatePickerOpen} onOpenChange={setIsEditDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="edit-date"
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editDate ? new Date(editDate).toLocaleDateString() : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={editDate ? new Date(editDate) : undefined}
+                      onSelect={(selected) => {
+                        if (selected) {
+                          const iso = new Date(selected).toISOString().split('T')[0];
+                          setEditDate(iso);
+                        }
+                      }}
+                      initialFocus
+                      className="rounded-md border"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
            
