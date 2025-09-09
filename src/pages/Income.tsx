@@ -112,7 +112,6 @@ const Income = () => {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Source</TableHead>
-                    <TableHead>Note</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Account</TableHead>
                     <TableHead>Actions</TableHead>
@@ -126,7 +125,6 @@ const Income = () => {
                           {income.source}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{income.note}</TableCell>
                       <TableCell className="font-semibold">{income.amount}</TableCell>
                       <TableCell>{income.account}</TableCell>
                       <TableCell>
@@ -203,12 +201,7 @@ const Income = () => {
                 </div>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="note">Note (Optional)</Label>
-              <Textarea id="note" placeholder="Add a note..." className="resize-none" rows={3} value={note} onChange={e => setNote(e.target.value)} />
-            </div>
-            
+                        
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
@@ -276,11 +269,7 @@ const Income = () => {
                 </div>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-note">Note (Optional)</Label>
-              <Textarea id="edit-note" placeholder="Add a note..." className="resize-none" rows={3} value={editNote} onChange={e => setEditNote(e.target.value)} />
-            </div>
+           
             
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
