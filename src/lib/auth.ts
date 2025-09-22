@@ -8,9 +8,12 @@ const USER_KEY = 'finmate_user';
 export interface User {
   id: number;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: string;
+  status: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 // Custom events for auth state changes

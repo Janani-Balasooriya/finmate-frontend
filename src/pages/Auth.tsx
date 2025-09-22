@@ -62,10 +62,11 @@ const Auth = () => {
     try {
       if (isLogin) {
         // Login
-        await authApi.login({
+        const loginRes = await authApi.login({
           email: formData.email,
           password: formData.password,
         });
+        console.log("Login response:", loginRes); // <-- Add this
         
         // Get user info
         await authApi.me();
@@ -81,7 +82,8 @@ const Auth = () => {
         await authApi.register({
           email: formData.email,
           password: formData.password,
-          name: formData.email.split('@')[0], // Use email prefix as name for now
+          firstName: formData.email.split('@')[0], // Use email prefix as first name for now
+          lastName: "User", // Default last name
           inviteToken: formData.inviteToken
         });
         

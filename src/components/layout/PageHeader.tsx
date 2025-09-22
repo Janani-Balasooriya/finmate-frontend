@@ -20,7 +20,7 @@ export function PageHeader({ title, userName, avatarUrl }: PageHeaderProps) {
   const { user, loading } = useUser();
 
   // Use provided userName prop or fall back to context user name
-  const displayName = userName || user?.name || 'User';
+  const displayName = userName || (user ? `${user.firstName} ${user.lastName}`.trim() : '') || 'User';
 
   const handleLogout = () => {
     // Clear authentication data
