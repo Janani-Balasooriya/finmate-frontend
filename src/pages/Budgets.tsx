@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -7,7 +7,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Utensils, Car, Gamepad2, ShoppingBag, Zap, Pencil, Trash2, PiggyBank, Heart, BookOpen, Home, Bus, Coffee, Gift, Search } from "lucide-react";
+import * as Icons from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { assignDistinctAccents } from "@/lib/accents";
 import { cn } from "@/lib/utils";
@@ -22,113 +23,85 @@ import {
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
-const budgetCategories = [{
-  id: 1,
-  name: "Food",
-  icon: Utensils,
-  spent: 14000,
-  budget: 35000,
-  color: "bg-orange-500",
-  progressColor: "bg-orange-500"
-}, {
-  id: 2,
-  name: "Transportation",
-  icon: Car,
-  spent: 2000,
-  budget: 5000,
-  color: "bg-blue-500",
-  progressColor: "bg-blue-500"
-}, {
-  id: 3,
-  name: "Entertainment",
-  icon: Gamepad2,
-  spent: 4100,
-  budget: 3000,
-  color: "bg-purple-500",
-  progressColor: "bg-purple-500"
-}, {
-  id: 4,
-  name: "Shopping",
-  icon: ShoppingBag,
-  spent: 1900,
-  budget: 4000,
-  color: "bg-pink-500",
-  progressColor: "bg-pink-500"
-}, {
-  id: 5,
-  name: "Utilities",
-  icon: Zap,
-  spent: 3000,
-  budget: 10000,
-  color: "bg-yellow-500",
-  progressColor: "bg-yellow-500"
-}];
-const totalSpent = budgetCategories.reduce((sum, cat) => sum + cat.spent, 0);
-const totalBudget = budgetCategories.reduce((sum, cat) => sum + cat.budget, 0);
-const remaining = totalBudget - totalSpent;
+import { budgetsApi, BudgetsResponseDto, BudgetItemDto } from "@/lib/budgets";
 export default function Budgets() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>(null);
+  const [data, setData] = useState<BudgetsResponseDto | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [newBudget, setNewBudget] = useState({
     name: "",
     amount: "",
     category: "",
-    icon: "utensils",
+    icon: "Utensils",
     color: "bg-orange-500"
   });
-  const [iconSearchQuery, setIconSearchQuery] = useState("");
+  // No local icon search here; IconPicker provides its own search
   const { toast } = useToast();
   
-  // Assign distinct accent colors to budget categories
-  const accents = assignDistinctAccents(budgetCategories);
-  const handleAddBudget = () => {
-    // Handle adding new budget logic here
-    console.log("Adding new budget:", newBudget);
-    toast({
-      title: "Budget Added",
-      description: "Your new budget category has been created successfully."
-    });
-    setIsAddModalOpen(false);
-    setNewBudget({
-      name: "",
-      amount: "",
-      category: "",
-      icon: "utensils",
-      color: "bg-orange-500"
-    });
+  const fetchBudgets = async () => {
+    try {
+      setLoading(true);
+      const res = await budgetsApi.get();
+      setData(res);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load budgets");
+      toast({ title: "Failed to load budgets", description: String(e?.message || e), variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleEditBudget = (budget: any) => {
+
+  useEffect(() => { fetchBudgets(); }, []);
+
+  const accents = useMemo(() => assignDistinctAccents((data?.items || [])), [data]);
+
+  const handleAddBudget = async () => {
+    try {
+      const payload = { name: newBudget.name, icon: newBudget.icon, color: newBudget.color, budgetAmount: Number(newBudget.amount) };
+      await budgetsApi.create(payload);
+      toast({ title: "Budget Added", description: "Your new budget category has been created successfully." });
+      setIsAddModalOpen(false);
+      setNewBudget({ name: "", amount: "", category: "", icon: "Utensils", color: "bg-orange-500" });
+      await fetchBudgets();
+    } catch (e: any) {
+      toast({ title: "Add failed", description: String(e?.message || e), variant: "destructive" });
+    }
+  };
+  const handleEditBudget = (budget: BudgetItemDto) => {
     setEditingBudget(budget);
     setNewBudget({
       name: budget.name,
-      amount: budget.budget.toString(),
+      amount: String(budget.budgetAmount ?? 0),
       category: budget.name.toLowerCase(),
-      icon: (budget.iconKey ?? "utensils"),
+      icon: (budget.icon ?? "Utensils"),
       color: budget.color ?? "bg-orange-500"
     });
     setIsEditModalOpen(true);
   };
-  const handleUpdateBudget = () => {
-    console.log("Updating budget:", editingBudget.id, newBudget);
-    toast({
-      title: "Budget Updated",
-      description: "Your budget category has been updated successfully."
-    });
-    setIsEditModalOpen(false);
-    setEditingBudget(null);
-    setNewBudget({
-      name: "",
-      amount: "",
-      category: ""
-    });
+  const handleUpdateBudget = async () => {
+    try {
+      const payload = { name: newBudget.name, icon: newBudget.icon, color: newBudget.color, budgetAmount: Number(newBudget.amount) };
+      await budgetsApi.update(Number(editingBudget.id), payload);
+      toast({ title: "Budget Updated", description: "Your budget category has been updated successfully." });
+      setIsEditModalOpen(false);
+      setEditingBudget(null);
+      setNewBudget({ name: "", amount: "", category: "", icon: "Utensils", color: "bg-orange-500" });
+      await fetchBudgets();
+    } catch (e: any) {
+      toast({ title: "Update failed", description: String(e?.message || e), variant: "destructive" });
+    }
   };
-  const handleDeleteBudget = (budgetId: number, budgetName: string) => {
-    console.log("Deleting budget:", budgetId);
-    toast({
-      title: "Budget Deleted",
-      description: `${budgetName} budget has been removed.`
-    });
+  const handleDeleteBudget = async (budgetId: number, budgetName: string) => {
+    try {
+      await budgetsApi.remove(budgetId);
+      toast({ title: "Budget Deleted", description: `${budgetName} budget has been removed.` });
+      await fetchBudgets();
+    } catch (e: any) {
+      toast({ title: "Delete failed", description: String(e?.message || e), variant: "destructive" });
+    }
   };
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -137,8 +110,12 @@ export default function Budgets() {
       minimumFractionDigits: 0
     }).format(amount).replace('₹', 'Rs.');
   };
+  const totalSpent = data?.summary.totalSpent || 0;
+  const totalBudget = data?.summary.totalBudget || 0;
+  const remaining = totalBudget - totalSpent;
+
   const getProgressMessage = () => {
-    const spentPercentage = totalSpent / totalBudget * 100;
+    const spentPercentage = totalBudget > 0 ? (totalSpent / totalBudget * 100) : 0;
     if (spentPercentage > 100) {
       return "You're over budget this month. Consider reviewing your spending.";
     } else if (spentPercentage > 80) {
@@ -148,15 +125,15 @@ export default function Budgets() {
     }
   };
   const getProgressMessageColor = () => {
-    const spentPercentage = totalSpent / totalBudget * 100;
+    const spentPercentage = totalBudget > 0 ? (totalSpent / totalBudget * 100) : 0;
     return spentPercentage > 80 ? "text-destructive" : "text-muted-foreground";
   };
 
   // Chart.js configuration for animated progress bar
   const createProgressChartData = () => {
-    const spentPercentage = Math.min((totalSpent / totalBudget) * 100, 100);
+    const spentPercentage = Math.min(totalBudget > 0 ? ((totalSpent / totalBudget) * 100) : 0, 100);
     const remainingPercentage = Math.max(100 - spentPercentage, 0);
-    const overBudgetPercentage = totalSpent > totalBudget ? ((totalSpent - totalBudget) / totalBudget) * 100 : 0;
+    const overBudgetPercentage = totalBudget > 0 && totalSpent > totalBudget ? ((totalSpent - totalBudget) / totalBudget) * 100 : 0;
 
     return {
       datasets: [{
@@ -190,26 +167,7 @@ export default function Budgets() {
     }
   } as const;
 
-  // Icon options for category selection
-  const iconOptions: { key: string; label: string; Icon: any }[] = [
-    { key: "utensils", label: "Food", Icon: Utensils },
-    { key: "car", label: "Transportation", Icon: Car },
-    { key: "gamepad2", label: "Entertainment", Icon: Gamepad2 },
-    { key: "shopping-bag", label: "Shopping", Icon: ShoppingBag },
-    { key: "zap", label: "Utilities", Icon: Zap },
-    { key: "piggy-bank", label: "Savings", Icon: PiggyBank },
-    { key: "heart", label: "Health", Icon: Heart },
-    { key: "book-open", label: "Education", Icon: BookOpen },
-    { key: "home", label: "Home", Icon: Home },
-    { key: "bus", label: "Travel", Icon: Bus },
-    { key: "coffee", label: "Cafe", Icon: Coffee },
-    { key: "gift", label: "Gifts", Icon: Gift }
-  ];
-
-  const filteredIconOptions = iconOptions.filter(opt =>
-    opt.label.toLowerCase().includes(iconSearchQuery.toLowerCase()) ||
-    opt.key.toLowerCase().includes(iconSearchQuery.toLowerCase())
-  );
+  // Icon options are handled by IconPicker
 
   const colorOptions = [
     "bg-orange-500",
@@ -260,7 +218,7 @@ export default function Budgets() {
                 <div className="relative w-32 h-32">
                   <Doughnut data={createProgressChartData()} options={chartOptions} />
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold">{Math.round((totalSpent / totalBudget) * 100)}%</span>
+                    <span className="text-2xl font-bold">{totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0}%</span>
                     <span className="text-xs text-muted-foreground">Used</span>
                   </div>
                 </div>
@@ -316,7 +274,7 @@ export default function Budgets() {
                 <div className="relative w-40 h-40 xl:w-48 xl:h-48">
                   <Doughnut data={createProgressChartData()} options={chartOptions} />
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl xl:text-4xl font-bold">{Math.round((totalSpent / totalBudget) * 100)}%</span>
+                    <span className="text-3xl xl:text-4xl font-bold">{totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0}%</span>
                     <span className="text-sm text-muted-foreground">Used</span>
                   </div>
                 </div>
@@ -387,7 +345,7 @@ export default function Budgets() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="budget-amount">Target Amount</Label>
+                <Label htmlFor="budget-amount">Target Amount (Rs.)</Label>
                 <Input id="budget-amount" type="number" placeholder="Enter amount" value={newBudget.amount} onChange={e => setNewBudget({
                 ...newBudget,
                 amount: e.target.value
@@ -442,11 +400,11 @@ export default function Budgets() {
         
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {budgetCategories.map(category => {
-          const IconComponent = category.icon;
-          const percentage = category.spent / category.budget * 100;
-          const remaining = category.budget - category.spent;
-          const isOverBudget = category.spent > category.budget;
+          {(data?.items || []).map(category => {
+          const IconComponent = (Icons as any)[category.icon || 'PiggyBank'] || (Icons as any)['PiggyBank'];
+          const percentage = category.budgetAmount > 0 ? (category.spentAmount / category.budgetAmount * 100) : 0;
+          const remaining = (category.budgetAmount ?? 0) - (category.spentAmount ?? 0);
+          const isOverBudget = (category.spentAmount ?? 0) > (category.budgetAmount ?? 0);
           
           // Get assigned accent colors for this category
           const key = String(category.id ?? category.name);
@@ -495,11 +453,11 @@ export default function Budgets() {
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Spent</span>
-                      <span className="font-medium">{formatCurrency(category.spent)}</span>
+                      <span className="font-medium">{formatCurrency(category.spentAmount)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Budget</span>
-                      <span className="font-medium">{formatCurrency(category.budget)}</span>
+                      <span className="font-medium">{formatCurrency(category.budgetAmount)}</span>
                     </div>
                   </div>
 
@@ -529,7 +487,7 @@ export default function Budgets() {
                   
                   {/* Over budget warning */}
                   {isOverBudget && (
-                    <p className="text-destructive text-sm mt-2">Over by {formatCurrency(category.spent - category.budget)}</p>
+                    <p className="text-destructive text-sm mt-2">Over by {formatCurrency((category.spentAmount ?? 0) - (category.budgetAmount ?? 0))}</p>
                   )}
                 </CardContent>
               </Card>;
