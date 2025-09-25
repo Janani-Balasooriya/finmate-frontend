@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import * as Icons from "lucide-react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { assignDistinctAccents } from "@/lib/accents";
 import { cn } from "@/lib/utils";
 import IconPicker from "@/components/IconPicker";
 import { Doughnut } from 'react-chartjs-2';
@@ -56,9 +55,14 @@ export default function Budgets() {
 
   useEffect(() => { fetchBudgets(); }, []);
 
-  const accents = useMemo(() => assignDistinctAccents((data?.items || [])), [data]);
+  // Colors are taken directly from backend category.color
 
   const handleAddBudget = async () => {
+    const nameLower = newBudget.name.trim().toLowerCase();
+    if ((data?.items || []).some(i => i.name.trim().toLowerCase() === nameLower)) {
+      toast({ title: "Duplicate name", description: "A budget category with this name already exists.", variant: "destructive" });
+      return;
+    }
     try {
       const payload = { name: newBudget.name, icon: newBudget.icon, color: newBudget.color, budgetAmount: Number(newBudget.amount) };
       await budgetsApi.create(payload);
@@ -82,6 +86,11 @@ export default function Budgets() {
     setIsEditModalOpen(true);
   };
   const handleUpdateBudget = async () => {
+    const nameLower = newBudget.name.trim().toLowerCase();
+    if ((data?.items || []).some(i => i.name.trim().toLowerCase() === nameLower && i.id !== editingBudget?.id)) {
+      toast({ title: "Duplicate name", description: "A budget category with this name already exists.", variant: "destructive" });
+      return;
+    }
     try {
       const payload = { name: newBudget.name, icon: newBudget.icon, color: newBudget.color, budgetAmount: Number(newBudget.amount) };
       await budgetsApi.update(Number(editingBudget.id), payload);
@@ -379,6 +388,23 @@ export default function Budgets() {
                     />
                   ))}
                 </div>
+                <div className="grid grid-cols-9 gap-2">
+                  {[
+                    "bg-zinc-500","bg-stone-500","bg-neutral-500","bg-slate-500","bg-cyan-500","bg-lime-500","bg-fuchsia-500","bg-rose-500","bg-amber-500",
+                  ].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setNewBudget({ ...newBudget, color: c })}
+                      className={cn(
+                        "h-8 w-8 rounded-full border",
+                        c,
+                        newBudget.color === c ? "ring-2 ring-offset-2 ring-primary" : ""
+                      )}
+                      aria-label={c}
+                    />
+                  ))}
+                </div>
               </div>
               
             </div>
@@ -387,6 +413,9 @@ export default function Budgets() {
               <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
               </Button>
+            <Button variant="secondary" onClick={() => setNewBudget({ name: "", amount: "", category: "", icon: "Utensils", color: "bg-orange-500" })}>
+              Clear
+            </Button>
               <Button onClick={handleAddBudget} disabled={!newBudget.name || !newBudget.amount || Number(newBudget.amount) <= 0}>
                 Add Budget
               </Button>
@@ -406,9 +435,8 @@ export default function Budgets() {
           const remaining = (category.budgetAmount ?? 0) - (category.spentAmount ?? 0);
           const isOverBudget = (category.spentAmount ?? 0) > (category.budgetAmount ?? 0);
           
-          // Get assigned accent colors for this category
-          const key = String(category.id ?? category.name);
-          const { icon, bar } = accents.get(key) ?? { icon: "bg-muted", bar: "bg-muted" };
+          const chipBg = category.color || "bg-muted";
+          const barBg = category.color || "bg-muted";
           return <Card key={category.id} className="rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow relative">
                 <CardContent className="p-6">
                   {/* Action buttons */}
@@ -441,7 +469,7 @@ export default function Budgets() {
 
                   {/* Icon and Category */}
                   <div className="flex items-center space-x-3 mb-4">
-                    <div className={cn("inline-flex h-10 w-10 items-center justify-center rounded-full", icon)}>
+                    <div className={cn("inline-flex h-10 w-10 items-center justify-center rounded-full text-white", chipBg)}>
                       <IconComponent className="w-5 h-5" />
                     </div>
                     <div>
@@ -470,7 +498,7 @@ export default function Budgets() {
                     <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden" role="progressbar"
                          aria-valuenow={Math.min(percentage, 100)} aria-valuemin={0} aria-valuemax={100} 
                          aria-label="Budget usage">
-                      <div className={cn("h-full rounded-full transition-all", isOverBudget ? "bg-destructive" : bar)} 
+                    <div className={cn("h-full rounded-full transition-all", isOverBudget ? "bg-destructive" : barBg)} 
                            style={{ width: `${Math.min(percentage, 100)}%` }} />
                     </div>
                   </div>
@@ -520,6 +548,43 @@ export default function Budgets() {
               ...newBudget,
               amount: e.target.value
             })} />
+            </div>
+
+            {/* Color selector in Edit */}
+            <div className="space-y-2">
+              <Label>Category Color</Label>
+              <div className="grid grid-cols-9 gap-2">
+                {colorOptions.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setNewBudget({ ...newBudget, color: c })}
+                    className={cn(
+                      "h-8 w-8 rounded-full border",
+                      c,
+                      newBudget.color === c ? "ring-2 ring-offset-2 ring-primary" : ""
+                    )}
+                    aria-label={c}
+                  />
+                ))}
+              </div>
+              <div className="grid grid-cols-9 gap-2">
+                {[
+                  "bg-zinc-500","bg-stone-500","bg-neutral-500","bg-slate-500","bg-cyan-500","bg-lime-500","bg-fuchsia-500","bg-rose-500","bg-amber-500",
+                ].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setNewBudget({ ...newBudget, color: c })}
+                    className={cn(
+                      "h-8 w-8 rounded-full border",
+                      c,
+                      newBudget.color === c ? "ring-2 ring-offset-2 ring-primary" : ""
+                    )}
+                    aria-label={c}
+                  />
+                ))}
+              </div>
             </div>
 
           </div>
