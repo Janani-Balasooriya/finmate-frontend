@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,11 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon, Edit, Trash2, Plus, ShoppingCart, Car, Zap, ChevronLeft, ChevronRight } from "lucide-react";
+import { accountsApi, AccountItemDto, CurrencyCodeDto } from "@/lib/accounts";
+import { useToast } from "@/hooks/use-toast";
 const expenseData = [{
   id: 1,
   date: "Jan 15, 2025",
@@ -48,6 +50,59 @@ const Expenses = () => {
   const [date, setDate] = useState("");
   const [account, setAccount] = useState("");
   const [note, setNote] = useState("");
+  
+  // Account management states
+  const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
+  const [currencyCodes, setCurrencyCodes] = useState<CurrencyCodeDto[]>([]);
+  const [isNewAccountModalOpen, setIsNewAccountModalOpen] = useState(false);
+  const [newAccount, setNewAccount] = useState({
+    name: "",
+    currencyCodesId: 0,
+    openingBalance: 0
+  });
+  const { toast } = useToast();
+
+  // Fetch accounts and currency codes on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [accountsData, currencyData] = await Promise.all([
+          accountsApi.getActive(),
+          accountsApi.getCurrencyCodes()
+        ]);
+        setAccounts(accountsData);
+        setCurrencyCodes(currencyData);
+      } catch (error) {
+        toast({
+          title: "Failed to load accounts",
+          description: "Could not load account data",
+          variant: "destructive"
+        });
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleCreateAccount = async () => {
+    try {
+      const createdAccount = await accountsApi.create(newAccount);
+      setAccounts(prev => [...prev, createdAccount]);
+      setAccount(createdAccount.id.toString());
+      setIsNewAccountModalOpen(false);
+      setNewAccount({ name: "", currencyCodesId: 0, openingBalance: 0 });
+      toast({
+        title: "Account created",
+        description: "New account has been created successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to create account",
+        description: error?.message || "Could not create account",
+        variant: "destructive"
+      });
+    }
+  };
+
   const [amountSortOrder, setAmountSortOrder] = useState("recent");
 
   // Pagination states
@@ -386,17 +441,28 @@ const Expenses = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="account">Account</Label>
-                <Select value={account} onValueChange={setAccount}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bank">Bank Account</SelectItem>
-                    <SelectItem value="credit">Credit Card</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="digital">Digital Wallet</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={account} onValueChange={setAccount}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {accounts.map(acc => (
+                        <SelectItem key={acc.id} value={acc.id.toString()}>
+                          {acc.name} ({acc.currencyCode})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsNewAccountModalOpen(true)}
+                  >
+                    + New
+                  </Button>
+                </div>
               </div>
               
               
@@ -490,17 +556,28 @@ const Expenses = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-account">Account</Label>
-                <Select value={editAccount} onValueChange={setEditAccount}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bank">Bank Account</SelectItem>
-                    <SelectItem value="credit">Credit Card</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="digital">Digital Wallet</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={editAccount} onValueChange={setEditAccount}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {accounts.map(acc => (
+                        <SelectItem key={acc.id} value={acc.id.toString()}>
+                          {acc.name} ({acc.currencyCode})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsNewAccountModalOpen(true)}
+                  >
+                    + New
+                  </Button>
+                </div>
               </div>
             </div>
             
@@ -578,6 +655,72 @@ const Expenses = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* New Account Modal */}
+      <Dialog open={isNewAccountModalOpen} onOpenChange={setIsNewAccountModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Account</DialogTitle>
+            <DialogDescription>
+              Create a new account to track your income and expenses.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="account-name">Account Name</Label>
+              <Input
+                id="account-name"
+                placeholder="e.g. Main Bank Account"
+                value={newAccount.name}
+                onChange={(e) => setNewAccount({ ...newAccount, name: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Select
+                value={newAccount.currencyCodesId.toString()}
+                onValueChange={(value) => setNewAccount({ ...newAccount, currencyCodesId: parseInt(value) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencyCodes.map(currency => (
+                    <SelectItem key={currency.id} value={currency.id.toString()}>
+                      {currency.code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="opening-balance">Opening Balance</Label>
+              <Input
+                id="opening-balance"
+                type="number"
+                placeholder="0.00"
+                value={newAccount.openingBalance}
+                onChange={(e) => setNewAccount({ ...newAccount, openingBalance: parseFloat(e.target.value) || 0 })}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewAccountModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateAccount}
+              disabled={!newAccount.name || newAccount.currencyCodesId === 0}
+            >
+              Create Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>;
 };
 export default Expenses;

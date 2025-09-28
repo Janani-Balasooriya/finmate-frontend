@@ -15,6 +15,7 @@ import SharedGoals from "./pages/SharedGoals";
 import Subscriptions from "./pages/Subscriptions";
 import { SettingsLayout } from "./pages/settings/SettingsLayout";
 import { ProfileSettingsPage } from "./pages/settings/ProfileSettingsPage";
+import AccountsPage from "./pages/settings/AccountsPage";
 import { MembersPage } from "./pages/settings/MembersPage";
 import { NotificationsPage } from "./pages/settings/NotificationsPage";
 import NotFound from "./pages/NotFound";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="subscriptions" element={<Subscriptions />} />
               <Route path="settings" element={<SettingsLayout />}>
                 <Route path="profile" element={<ProfileSettingsPage />} />
+                <Route path="accounts" element={<AccountsPage />} />
                 <Route path="members" element={<MembersPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
               </Route>

@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { Settings, User, Users, Bell } from "lucide-react";
+import { Settings, User, Users, Bell, CreditCard } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
@@ -11,6 +11,12 @@ const settingsNavItems = [
     label: "Profile Settings",
     icon: User,
     path: "/settings/profile"
+  },
+  {
+    id: "accounts",
+    label: "Accounts",
+    icon: CreditCard,
+    path: "/settings/accounts"
   },
   {
     id: "members",
@@ -41,7 +47,8 @@ export function SettingsLayout() {
   });
 
   // Adjust grid columns based on number of visible tabs
-  const gridCols = filteredNavItems.length === 3 ? "grid-cols-3" : "grid-cols-2";
+  const gridCols = filteredNavItems.length === 4 ? "grid-cols-4" : 
+                   filteredNavItems.length === 3 ? "grid-cols-3" : "grid-cols-2";
 
   return (
     <div className="mx-auto max-w-6xl px-6 lg:px-8 space-y-6">
