@@ -59,6 +59,9 @@ const Income = () => {
   });
   const { toast } = useToast();
 
+  // Income source management states
+  const [isNewIncomeSourceModalOpen, setIsNewIncomeSourceModalOpen] = useState(false);
+
   // Fetch accounts and currency codes on component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -401,18 +404,28 @@ const Income = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="source">Source</Label>
-                <Select value={source} onValueChange={setSource}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Salary" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="salary">Salary</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                    <SelectItem value="business">Business</SelectItem>
-                    <SelectItem value="investment">Investment</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                    <Select value={source} onValueChange={setSource}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Salary" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="salary">Salary</SelectItem>
+                      <SelectItem value="freelance">Freelance</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
+                      <SelectItem value="investment">Investment</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsNewIncomeSourceModalOpen(true)}
+                  >
+                    + New
+                  </Button>
+                </div>
               </div>
             </div>
             
