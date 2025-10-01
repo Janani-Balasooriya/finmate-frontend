@@ -14,6 +14,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon, Edit, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { accountsApi, AccountItemDto, CurrencyCodeDto } from "@/lib/accounts";
 import { useToast } from "@/hooks/use-toast";
+import { incomeSourceApi, IncomeSourceItemDto } from "@/lib/incomeSource";
+import { set } from "react-hook-form";
+import { cn } from "@/lib/utils";
 const incomeData = [{
   id: 1,
   date: "Jan 15, 2025",
@@ -39,6 +42,19 @@ const incomeData = [{
   account: "Bank Account",
   type: "freelance"
 }];
+
+  const colorOptions = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-yellow-500",
+    "bg-green-500",
+    "bg-teal-500",
+    "bg-red-500",
+    "bg-indigo-500",
+  ];
+
 const Income = () => {
   const [amount, setAmount] = useState("");
   const [source, setSource] = useState("");
@@ -60,7 +76,12 @@ const Income = () => {
   const { toast } = useToast();
 
   // Income source management states
+  const [incomeSources, setIncomeSources] = useState<IncomeSourceItemDto[]>([]);
   const [isNewIncomeSourceModalOpen, setIsNewIncomeSourceModalOpen] = useState(false);
+  const [newIncomeSource, setNewIncomeSource] = useState({
+    name: "",
+    color: ""
+  });
 
   // Fetch accounts and currency codes on component mount
   useEffect(() => {
@@ -98,6 +119,26 @@ const Income = () => {
       toast({
         title: "Failed to create account",
         description: error?.message || "Could not create account",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCreateIncomeSource = async () => {
+    try {
+      const createdIncomeSource = await incomeSourceApi.create(newIncomeSource);
+      setIncomeSources(prev => [...prev, createdIncomeSource]);
+      setSource(createdIncomeSource.id.toString());
+      setIsNewIncomeSourceModalOpen(false);
+      setNewIncomeSource({ name: "", color: "" });
+      toast({
+        title: "Income Source created",
+        description: "New income source has been created successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to create income source",
+        description: error?.message || "Could not create income source",
         variant: "destructive"
       });
     }
@@ -680,6 +721,65 @@ const Income = () => {
               disabled={!newAccount.name || newAccount.currencyCodesId === 0}
             >
               Create Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New IncomeSource Modal */}
+      <Dialog open={isNewIncomeSourceModalOpen} onOpenChange={setIsNewIncomeSourceModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Income Source</DialogTitle>
+            <DialogDescription>
+              Create a new Income Source.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="source-name">Income Source Name</Label>
+              <Input
+                id="source-name"
+                placeholder="e.g. Salary, Freelance, Business"
+                value={newIncomeSource.name}
+                onChange={(e) => setNewIncomeSource({ ...newIncomeSource, name: e.target.value })}
+              />
+            </div>
+            
+            {/* Color selector */}
+            <div className="space-y-2">
+              <Label>Source Color</Label>
+              <div className="grid grid-cols-9 gap-2">
+                {colorOptions.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setNewIncomeSource({ ...newIncomeSource, color: c })}
+                    className={cn(
+                      "h-8 w-8 rounded-full border",
+                      c,
+                      newIncomeSource.color === c ? "ring-2 ring-offset-2 ring-primary" : ""
+                    )}
+                    aria-label={c}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewIncomeSourceModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="secondary" onClick={() => setNewIncomeSource({ name: "", color: "" })}>
+              Clear
+            </Button>
+            <Button 
+              onClick={handleCreateIncomeSource}
+              disabled={!newIncomeSource.name || newIncomeSource.color === ""}
+            >
+              Create Income Source
             </Button>
           </DialogFooter>
         </DialogContent>
