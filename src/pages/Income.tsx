@@ -468,11 +468,9 @@ const Income = () => {
                       <SelectValue placeholder="Salary" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="salary">Salary</SelectItem>
-                      <SelectItem value="freelance">Freelance</SelectItem>
-                      <SelectItem value="business">Business</SelectItem>
-                      <SelectItem value="investment">Investment</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      {incomeSources.map(src => (
+                        <SelectItem key={src.id} value={src.id.toString()}>{src.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Button
