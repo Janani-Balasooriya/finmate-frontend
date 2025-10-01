@@ -104,6 +104,23 @@ const Income = () => {
     fetchData();
   }, []);
 
+  // Fetch income sources on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const incomeSourcesData = await incomeSourceApi.getActive();
+        setIncomeSources(incomeSourcesData);
+      } catch (error) {
+        toast({
+          title: "Failed to load income sources",
+          description: "Could not load income source data",
+          variant: "destructive"
+        });
+      }
+    };
+    fetchData();
+  }, []);
+
   const handleCreateAccount = async () => {
     try {
       const createdAccount = await accountsApi.create(newAccount);
@@ -561,11 +578,11 @@ const Income = () => {
                     <SelectValue placeholder="Salary" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="salary">Salary</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                    <SelectItem value="business">Business</SelectItem>
-                    <SelectItem value="investment">Investment</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    {incomeSources.map(src => (
+                      <SelectItem key={src.id} value={src.id.toString()}>
+                        {src.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
