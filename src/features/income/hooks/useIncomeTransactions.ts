@@ -26,6 +26,7 @@ export function useIncomeTransactions() {
     return {
       id: transaction.id,
       date: formattedDate,
+      dateIso: transaction.transactionDate.split('T')[0],
       source: transaction.incomeSourceName,
       sourceId: transaction.incomeSourceId,
       note: '', // Backend doesn't have notes field

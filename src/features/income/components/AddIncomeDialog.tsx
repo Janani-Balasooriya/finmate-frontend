@@ -63,7 +63,7 @@ export function AddIncomeDialog({
       return;
     }
 
-    const amountValue = parseFloat(amount);
+    const amountValue = parseFloat(amount.replace(/,/g, ''));
     if (isNaN(amountValue) || amountValue <= 0) {
       toast({
         title: "Validation Error",
@@ -165,8 +165,10 @@ export function AddIncomeDialog({
                     selected={date ? new Date(date) : undefined}
                     onSelect={(selected) => {
                       if (selected) {
-                        const iso = new Date(selected).toISOString().split("T")[0];
-                        setDate(iso);
+                        const year = selected.getFullYear();
+                        const month = String(selected.getMonth() + 1).padStart(2, '0');
+                        const day = String(selected.getDate()).padStart(2, '0');
+                        setDate(`${year}-${month}-${day}`);
                         setIsDateOpen(false);
                       }
                     }}

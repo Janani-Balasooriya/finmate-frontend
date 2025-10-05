@@ -1,6 +1,7 @@
 export type IncomeItem = {
   id: number;
   date: string;        // e.g. "Jan 15, 2025"
+  dateIso: string;     // e.g. "2025-01-15"
   source: string;      // e.g. "Salary"
   sourceId: number;    // e.g. 1
   note: string;

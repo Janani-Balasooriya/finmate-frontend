@@ -32,13 +32,13 @@ export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSour
     setAmount(row.amount.replace("Rs. ", ""));
     setSource(String(row.sourceId));
     setAccount(String(row.accountId));
-    setDate(new Date(row.date).toISOString().split("T")[0]);
+    setDate(row.dateIso);
   }, [row]);
 
   const submit = async () => {
     if (!row) return;
     const payload = {
-      amount: parseFloat(amount),
+      amount: parseFloat(amount.replace(/,/g, '')),
       transactionDate: date,
       accountId: parseInt(account),
       incomeSourceId: parseInt(source),
@@ -104,8 +104,10 @@ export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSour
                     selected={date ? new Date(date) : undefined}
                     onSelect={(selected) => {
                       if (selected) {
-                        const iso = new Date(selected).toISOString().split("T")[0];
-                        setDate(iso);
+                        const year = selected.getFullYear();
+                        const month = String(selected.getMonth() + 1).padStart(2, '0');
+                        const day = String(selected.getDate()).padStart(2, '0');
+                        setDate(`${year}-${month}-${day}`);
                       }
                     }}
                     initialFocus
