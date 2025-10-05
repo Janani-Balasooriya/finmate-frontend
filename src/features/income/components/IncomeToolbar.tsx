@@ -6,6 +6,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "../types";
 import { formatDateRange } from "../utils/formatDateRange";
 import { useState } from "react";
+import { IncomeSourceItemDto } from "@/lib/incomeSource";
 
 type Props = {
   dateRange: DateRange;
@@ -13,6 +14,9 @@ type Props = {
   onClearRange: () => void;
   amountSortOrder: string;
   onAmountSortChange: (v: string) => void;
+  incomeSources: IncomeSourceItemDto[];
+  sourceFilter: string;
+  onSourceFilterChange: (v: string) => void;
 };
 
 export function IncomeToolbar({
@@ -21,20 +25,25 @@ export function IncomeToolbar({
   onClearRange,
   amountSortOrder,
   onAmountSortChange,
+  incomeSources,
+  sourceFilter,
+  onSourceFilterChange,
 }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-4 mt-4">
-      <Select defaultValue="all">
+      <Select value={sourceFilter} onValueChange={onSourceFilterChange}>
         <SelectTrigger className="w-48">
           <SelectValue placeholder="All Sources" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Sources</SelectItem>
-          <SelectItem value="salary">Salary</SelectItem>
-          <SelectItem value="freelance">Freelance</SelectItem>
-          <SelectItem value="business">Business</SelectItem>
+          {incomeSources.map((source) => (
+            <SelectItem key={source.id} value={String(source.id)}>
+              {source.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 

@@ -17,9 +17,10 @@ type Props = {
   row?: IncomeItem | null;
   accounts: AccountItemDto[];
   incomeSources: IncomeSourceItemDto[];
+  onUpdate: (id: number, payload: any) => Promise<any>;
 };
 
-export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSources }: Props) {
+export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSources, onUpdate }: Props) {
   const [amount, setAmount]   = useState("");
   const [source, setSource]   = useState("");
   const [account, setAccount] = useState("");
@@ -29,12 +30,22 @@ export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSour
   useEffect(() => {
     if (!row) return;
     setAmount(row.amount.replace("Rs. ", ""));
-    setSource(row.source.toLowerCase());
-    setAccount(row.account.toLowerCase().replace(" ", ""));
+    setSource(String(row.sourceId));
+    setAccount(String(row.accountId));
     setDate(new Date(row.date).toISOString().split("T")[0]);
   }, [row]);
 
-  const submit = () => onOpenChange(false); // TODO: wire update
+  const submit = async () => {
+    if (!row) return;
+    const payload = {
+      amount: parseFloat(amount),
+      transactionDate: date,
+      accountId: parseInt(account),
+      incomeSourceId: parseInt(source),
+    };
+    await onUpdate(row.id, payload);
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

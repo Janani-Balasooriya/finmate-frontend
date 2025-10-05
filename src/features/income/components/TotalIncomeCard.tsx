@@ -23,13 +23,13 @@ export function TotalIncomeCard({
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-success">${total.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-success">Rs. {total.toLocaleString()}</div>
             <p className="text-sm text-muted-foreground">
               {count} income{count !== 1 ? "s" : ""}
             </p>
             {summary && (
               <p className="text-xs text-muted-foreground">
-                Avg: ${summary.averageAmount.toLocaleString()}
+                Avg: Rs. {summary.averageAmount.toLocaleString()}
               </p>
             )}
           </div>

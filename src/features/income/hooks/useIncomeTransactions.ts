@@ -1,16 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { incomesApi, IncomeTransactionItem, CreateIncomeTransactionRequest, UpdateIncomeTransactionRequest, IncomeTransactionSummary, PaginatedResponse } from '@/lib/incomes';
 import { useToast } from '@/hooks/use-toast';
-
-export interface IncomeItem {
-  id: number;
-  date: string;        // Formatted date string
-  source: string;      // Income source name
-  note: string;        // Description (can be empty)
-  amount: string;      // Formatted amount string
-  account: string;     // Account name
-  type: string;        // Income source type/color
-}
+import { IncomeItem } from '../types';
 
 export interface DateRange { 
   from?: Date; 
@@ -36,9 +27,11 @@ export function useIncomeTransactions() {
       id: transaction.id,
       date: formattedDate,
       source: transaction.incomeSourceName,
+      sourceId: transaction.incomeSourceId,
       note: '', // Backend doesn't have notes field
-      amount: `$${transaction.amount.toLocaleString()}`,
+      amount: `Rs. ${transaction.amount.toLocaleString()}`,
       account: transaction.accountName,
+      accountId: transaction.accountId,
       type: transaction.incomeSourceColor || 'default'
     };
   };

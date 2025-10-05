@@ -26,24 +26,29 @@ export default function IncomePage() {
   const { toast } = useToast();
   const { accounts, currencyCodes, createAccount } = useAccounts((o) => toast(o));
   const { incomeSources, createIncomeSource } = useIncomeSources((o) => toast(o));
-  const { 
-    incomeItems, 
-    summary, 
-    loading, 
-    loadTransactions, 
-    loadSummary, 
+  const {
+    incomeItems,
+    summary,
+    loading,
+    loadTransactions,
+    loadSummary,
     loadTransactionsByDateRange,
     createTransaction,
-    getCurrentMonthIncome 
+    updateTransaction,
+    deleteTransaction,
+    getCurrentMonthIncome
   } = useIncomeTransactions();
 
   // Toolbar state
   const [dateRange, setDateRange] = useState<DateRange>({});
   const [amountSortOrder, setAmountSortOrder] = useState("recent");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [currentMonthIncome, setCurrentMonthIncome] = useState<number>(0);
 
   // Filter + sort
-  const filtered = filterByDateRange(incomeItems, dateRange);
+  const filtered = filterByDateRange(incomeItems, dateRange).filter(item =>
+    sourceFilter === "all" || String(item.sourceId) === sourceFilter
+  );
   const sorted = [...filtered].sort((a, b) => {
     const A = Number(a.amount.replace(/[^\d.]/g, "").replace(/,/g, "")) || 0;
     const B = Number(b.amount.replace(/[^\d.]/g, "").replace(/,/g, "")) || 0;
@@ -62,6 +67,7 @@ export default function IncomePage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<IncomeItem | null>(null);
+  const [deletingIncome, setDeletingIncome] = useState<IncomeItem | null>(null);
 
   const [isNewAccountOpen, setIsNewAccountOpen] = useState(false);
   const [isNewSourceOpen, setIsNewSourceOpen] = useState(false);
@@ -96,7 +102,7 @@ export default function IncomePage() {
 
   // Handlers
   const onEdit = (row: IncomeItem) => { setEditingIncome(row); setIsEditDialogOpen(true); };
-  const onDelete = (_row: IncomeItem) => { setIsDeleteDialogOpen(true); };
+  const onDelete = (row: IncomeItem) => { setDeletingIncome(row); setIsDeleteDialogOpen(true); };
 
   const handleCreateTransaction = async (payload: any) => {
     await createTransaction(payload);
@@ -129,7 +135,7 @@ export default function IncomePage() {
         <CardHeader>
           <div className="flex items-center justify-end">
             <div className="bg-success/10 text-success border-success/20 text-sm px-3 py-1 rounded-md">
-              You've earned ${currentMonthIncome.toLocaleString()} this month
+              You've earned Rs. {currentMonthIncome.toLocaleString()} this month
             </div>
           </div>
 
@@ -142,6 +148,9 @@ export default function IncomePage() {
             }}
             amountSortOrder={amountSortOrder}
             onAmountSortChange={setAmountSortOrder}
+            incomeSources={incomeSources}
+            sourceFilter={sourceFilter}
+            onSourceFilterChange={setSourceFilter}
           />
         </CardHeader>
 
@@ -217,12 +226,19 @@ export default function IncomePage() {
         row={editingIncome}
         accounts={accounts}
         incomeSources={incomeSources}
+        onUpdate={updateTransaction}
       />
 
       <DeleteIncomeDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={() => setIsDeleteDialogOpen(false)}
+        onConfirm={async () => {
+          if (deletingIncome) {
+            await deleteTransaction(deletingIncome.id);
+          }
+          setIsDeleteDialogOpen(false);
+          setDeletingIncome(null);
+        }}
       />
 
       <NewAccountDialog
