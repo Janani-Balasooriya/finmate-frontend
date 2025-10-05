@@ -1,9 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { parseAmountLkr } from "../utils/parseAmount";
-import { IncomeItem } from "../types";
+import { IncomeTransactionSummary } from "@/lib/incomes";
 
-export function TotalIncomeCard({ rows }: { rows: IncomeItem[] }) {
-  const total = rows.reduce((sum, r) => sum + parseAmountLkr(r.amount), 0);
+export function TotalIncomeCard({ 
+  summary, 
+  rows 
+}: { 
+  summary?: IncomeTransactionSummary | null;
+  rows?: any[];
+}) {
+  // Use backend summary if available, otherwise fallback to local calculation
+  const total = summary?.totalAmount || 0;
+  const count = summary?.transactionCount || rows?.length || 0;
 
   return (
     <Card>
@@ -11,13 +18,20 @@ export function TotalIncomeCard({ rows }: { rows: IncomeItem[] }) {
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h3 className="text-lg font-semibold text-foreground">Total Income</h3>
-            <p className="text-sm text-muted-foreground">Sum of all incomes in range</p>
+            <p className="text-sm text-muted-foreground">
+              {summary ? "All-time total" : "Sum of all incomes in range"}
+            </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-success">Rs. {total.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-success">${total.toLocaleString()}</div>
             <p className="text-sm text-muted-foreground">
-              {rows.length} income{rows.length !== 1 ? "s" : ""}
+              {count} income{count !== 1 ? "s" : ""}
             </p>
+            {summary && (
+              <p className="text-xs text-muted-foreground">
+                Avg: ${summary.averageAmount.toLocaleString()}
+              </p>
+            )}
           </div>
         </div>
       </CardContent>

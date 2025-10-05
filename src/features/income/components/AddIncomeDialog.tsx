@@ -9,6 +9,8 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { AccountItemDto } from "@/lib/accounts";
 import { IncomeSourceItemDto } from "@/lib/incomeSource";
+import { CreateIncomeTransactionRequest } from "@/lib/incomes";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   open: boolean;
@@ -17,6 +19,7 @@ type Props = {
   incomeSources: IncomeSourceItemDto[];
   onOpenNewAccount: () => void;
   onOpenNewSource: () => void;
+  onCreateTransaction: (payload: CreateIncomeTransactionRequest) => Promise<void>;
 };
 
 export function AddIncomeDialog({
@@ -26,18 +29,70 @@ export function AddIncomeDialog({
   incomeSources,
   onOpenNewAccount,
   onOpenNewSource,
+  onCreateTransaction,
 }: Props) {
+  const { toast } = useToast();
   const [amount, setAmount] = useState("");
   const [source, setSource] = useState("");
   const [account, setAccount] = useState("");
   const [date, setDate] = useState("");
   const [isDateOpen, setIsDateOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // TODO: wire saving handler
-  const submit = () => onOpenChange(false);
+  const resetForm = () => {
+    setAmount("");
+    setSource("");
+    setAccount("");
+    setDate("");
+  };
+
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      resetForm();
+    }
+    onOpenChange(open);
+  };
+
+  const submit = async () => {
+    if (!amount || !source || !account || !date) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const amountValue = parseFloat(amount);
+    if (isNaN(amountValue) || amountValue <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid amount",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload: CreateIncomeTransactionRequest = {
+        amount: amountValue,
+        transactionDate: date,
+        accountId: parseInt(account),
+        incomeSourceId: parseInt(source)
+      };
+
+      await onCreateTransaction(payload);
+      handleClose(false);
+    } catch (error) {
+      // Error handling is done in the parent component
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add Income</DialogTitle>
@@ -46,16 +101,23 @@ export function AddIncomeDialog({
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
-              <Input id="amount" placeholder="1500" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <Label htmlFor="amount">Amount *</Label>
+              <Input 
+                id="amount" 
+                type="number"
+                step="0.01"
+                placeholder="1500.00" 
+                value={amount} 
+                onChange={(e) => setAmount(e.target.value)} 
+              />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="source">Source</Label>
+              <Label htmlFor="source">Source *</Label>
               <div className="flex gap-2">
                 <Select value={source} onValueChange={setSource}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Salary" />
+                    <SelectValue placeholder="Select income source" />
                   </SelectTrigger>
                   <SelectContent>
                     {incomeSources.map((s) => (
@@ -70,7 +132,7 @@ export function AddIncomeDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="account">Account</Label>
+              <Label htmlFor="account">Account *</Label>
               <div className="flex gap-2">
                 <Select value={account} onValueChange={setAccount}>
                   <SelectTrigger className="flex-1">
@@ -89,7 +151,7 @@ export function AddIncomeDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">Date *</Label>
               <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
                 <PopoverTrigger asChild>
                   <Button id="date" variant="outline" className="w-full justify-start text-left font-normal">
@@ -105,6 +167,7 @@ export function AddIncomeDialog({
                       if (selected) {
                         const iso = new Date(selected).toISOString().split("T")[0];
                         setDate(iso);
+                        setIsDateOpen(false);
                       }
                     }}
                     initialFocus
@@ -116,8 +179,16 @@ export function AddIncomeDialog({
           </div>
 
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button className="bg-success hover:bg-success/90 text-white" onClick={submit}>Add Income</Button>
+            <Button variant="outline" onClick={() => handleClose(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-success hover:bg-success/90 text-white" 
+              onClick={submit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Adding..." : "Add Income"}
+            </Button>
           </div>
         </div>
       </DialogContent>

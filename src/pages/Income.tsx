@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 import { useAccounts } from "@/features/income/hooks/useAccounts";
 import { useIncomeSources } from "@/features/income/hooks/useIncomeSources";
+import { useIncomeTransactions } from "@/features/income/hooks/useIncomeTransactions";
 import { IncomeToolbar } from "@/features/income/components/IncomeToolbar";
 import { IncomeTable } from "@/features/income/components/IncomeTable";
 import { TotalIncomeCard } from "@/features/income/components/TotalIncomeCard";
@@ -17,7 +18,6 @@ import { AddIncomeDialog } from "@/features/income/components/AddIncomeDialog";
 import { EditIncomeDialog } from "@/features/income/components/EditIncomeDialog";
 import { DeleteIncomeDialog } from "@/features/income/components/DeleteIncomeDialog";
 
-import { incomeData } from "@/features/income/constants/mockIncome";
 import { DateRange, IncomeItem } from "@/features/income/types";
 import { filterByDateRange } from "@/features/income/utils/filterByDateRange";
 import { usePagination } from "@/features/income/hooks/usePagination";
@@ -26,19 +26,30 @@ export default function IncomePage() {
   const { toast } = useToast();
   const { accounts, currencyCodes, createAccount } = useAccounts((o) => toast(o));
   const { incomeSources, createIncomeSource } = useIncomeSources((o) => toast(o));
+  const { 
+    incomeItems, 
+    summary, 
+    loading, 
+    loadTransactions, 
+    loadSummary, 
+    loadTransactionsByDateRange,
+    createTransaction,
+    getCurrentMonthIncome 
+  } = useIncomeTransactions();
 
   // Toolbar state
   const [dateRange, setDateRange] = useState<DateRange>({});
   const [amountSortOrder, setAmountSortOrder] = useState("recent");
+  const [currentMonthIncome, setCurrentMonthIncome] = useState<number>(0);
 
   // Filter + sort
-  const filtered = filterByDateRange(incomeData, dateRange);
+  const filtered = filterByDateRange(incomeItems, dateRange);
   const sorted = [...filtered].sort((a, b) => {
     const A = Number(a.amount.replace(/[^\d.]/g, "").replace(/,/g, "")) || 0;
     const B = Number(b.amount.replace(/[^\d.]/g, "").replace(/,/g, "")) || 0;
     if (amountSortOrder === "high-to-low") return B - A;
     if (amountSortOrder === "low-to-high") return A - B;
-    return 0; // "recent" – keep mock order
+    return 0; // "recent" – keep backend order
   });
 
   // Pagination
@@ -55,9 +66,42 @@ export default function IncomePage() {
   const [isNewAccountOpen, setIsNewAccountOpen] = useState(false);
   const [isNewSourceOpen, setIsNewSourceOpen] = useState(false);
 
+  // Load data on component mount
+  useEffect(() => {
+    loadTransactions();
+    loadSummary();
+    loadCurrentMonthIncome();
+  }, [loadTransactions, loadSummary]);
+
+  const loadCurrentMonthIncome = async () => {
+    try {
+      const income = await getCurrentMonthIncome();
+      setCurrentMonthIncome(income);
+    } catch (error) {
+      console.error('Failed to load current month income:', error);
+    }
+  };
+
+  // Handle date range changes
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+    if (range.from && range.to) {
+      const startDate = range.from.toISOString().split('T')[0];
+      const endDate = range.to.toISOString().split('T')[0];
+      loadTransactionsByDateRange(startDate, endDate);
+    } else {
+      loadTransactions();
+    }
+  };
+
   // Handlers
   const onEdit = (row: IncomeItem) => { setEditingIncome(row); setIsEditDialogOpen(true); };
   const onDelete = (_row: IncomeItem) => { setIsDeleteDialogOpen(true); };
+
+  const handleCreateTransaction = async (payload: any) => {
+    await createTransaction(payload);
+    await loadCurrentMonthIncome(); // Refresh current month income
+  };
 
   const selectNewAccount = (id: number) => {
     toast({ title: "Account created", description: "New account has been created successfully" });
@@ -85,21 +129,30 @@ export default function IncomePage() {
         <CardHeader>
           <div className="flex items-center justify-end">
             <div className="bg-success/10 text-success border-success/20 text-sm px-3 py-1 rounded-md">
-              You've earned $1,580 this month
+              You've earned ${currentMonthIncome.toLocaleString()} this month
             </div>
           </div>
 
           <IncomeToolbar
             dateRange={dateRange}
-            onDateRangeChange={(r) => setDateRange(r)}
-            onClearRange={() => setDateRange({})}
+            onDateRangeChange={handleDateRangeChange}
+            onClearRange={() => {
+              setDateRange({});
+              loadTransactions();
+            }}
             amountSortOrder={amountSortOrder}
             onAmountSortChange={setAmountSortOrder}
           />
         </CardHeader>
 
         <CardContent>
-          <IncomeTable rows={current} onEdit={onEdit} onDelete={onDelete} />
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="text-muted-foreground">Loading income transactions...</div>
+            </div>
+          ) : (
+            <IncomeTable rows={current} onEdit={onEdit} onDelete={onDelete} />
+          )}
         </CardContent>
 
         {/* Pagination */}
@@ -145,7 +198,7 @@ export default function IncomePage() {
       </Card>
 
       {/* Total */}
-      <TotalIncomeCard rows={sorted} />
+      <TotalIncomeCard summary={summary} rows={sorted} />
 
       {/* Dialogs */}
       <AddIncomeDialog
@@ -155,6 +208,7 @@ export default function IncomePage() {
         incomeSources={incomeSources}
         onOpenNewAccount={() => setIsNewAccountOpen(true)}
         onOpenNewSource={() => setIsNewSourceOpen(true)}
+        onCreateTransaction={handleCreateTransaction}
       />
 
       <EditIncomeDialog
