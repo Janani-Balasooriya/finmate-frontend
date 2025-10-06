@@ -29,12 +29,6 @@ const settingsNavItems = [
     label: "Notifications",
     icon: Bell,
     path: "/settings/notifications"
-  },
-  {
-    id: "categories",
-    label: "Manage Categories",
-    icon: Tag,
-    path: "/settings/categories"
   }
 ];
 
@@ -53,8 +47,7 @@ export function SettingsLayout() {
   });
 
   // Adjust grid columns based on number of visible tabs
-  const gridCols = filteredNavItems.length === 5 ? "grid-cols-5" :
-                   filteredNavItems.length === 4 ? "grid-cols-4" :
+  const gridCols = filteredNavItems.length === 4 ? "grid-cols-4" :
                    filteredNavItems.length === 3 ? "grid-cols-3" : "grid-cols-2";
 
   return (

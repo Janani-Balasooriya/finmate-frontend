@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, TrendingUp, TrendingDown, PieChart, Target, CreditCard, Settings, ChevronDown } from "lucide-react";
+import { LayoutDashboard, TrendingUp, TrendingDown, PieChart, Target, CreditCard, Settings, ChevronDown, Tag } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 const menuItems = [{
@@ -69,12 +69,19 @@ export function Sidebar({
                   Manage Financial Data
                 </Link>
               </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                <Link to="/settings/categories" className="flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Manage Categories
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/settings/preferences" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   Account Preferences
                 </Link>
               </DropdownMenuItem>
+
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
