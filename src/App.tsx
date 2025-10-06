@@ -18,6 +18,9 @@ import { ProfileSettingsPage } from "./pages/settings/ProfileSettingsPage";
 import AccountsPage from "./pages/settings/AccountsPage";
 import { MembersPage } from "./pages/settings/MembersPage";
 import { NotificationsPage } from "./pages/settings/NotificationsPage";
+import { FinancialDataLayout } from "./pages/settings/FinancialDataLayout";
+import { AccountPreferencesLayout } from "./pages/settings/AccountPreferencesLayout";
+import IncomeSourcesPage from "./pages/settings/IncomeSourcesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,11 +45,16 @@ const App = () => (
               <Route path="budgets" element={<Budgets />} />
               <Route path="shared-goals" element={<SharedGoals />} />
               <Route path="subscriptions" element={<Subscriptions />} />
-              <Route path="settings" element={<SettingsLayout />}>
-                <Route path="profile" element={<ProfileSettingsPage />} />
-                <Route path="accounts" element={<AccountsPage />} />
-                <Route path="members" element={<MembersPage />} />
-                <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="settings">
+                <Route path="financial-data" element={<FinancialDataLayout />}>
+                  <Route path="accounts" element={<AccountsPage />} />
+                  <Route path="income-sources" element={<IncomeSourcesPage />} />
+                </Route>
+                <Route path="preferences" element={<AccountPreferencesLayout />}>
+                  <Route path="profile" element={<ProfileSettingsPage />} />
+                  <Route path="notifications" element={<NotificationsPage />} />
+                  <Route path="members" element={<MembersPage />} />
+                </Route>
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

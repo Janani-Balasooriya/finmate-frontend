@@ -11,6 +11,12 @@ export interface CreateIncomeSourcePayload {
   color: string;
 }
 
+export interface UpdateIncomeSourcePayload {
+  name?: string;
+  color?: string;
+  active?: boolean;
+}
+
 export const incomeSourceApi = {
   async getActive(): Promise<IncomeSourceItemDto[]> {
     return httpClient.get('/income-sources?active=true');
@@ -20,4 +26,11 @@ export const incomeSourceApi = {
     return httpClient.post('/income-sources', payload);
   },
 
+  async update(id: number, payload: UpdateIncomeSourcePayload): Promise<IncomeSourceItemDto> {
+    return httpClient.put(`/income-sources/${id}`, payload);
+  },
+
+  async archive(id: number): Promise<void> {
+    return httpClient.delete(`/income-sources/${id}`);
+  },
 };
