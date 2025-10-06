@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { Settings, CreditCard, TrendingUp } from "lucide-react";
+import { Settings, CreditCard, TrendingUp, Tag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";

@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { Settings, User, Users, Bell, CreditCard } from "lucide-react";
+import { Settings, User, Users, Bell, CreditCard, Tag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
@@ -29,6 +29,12 @@ const settingsNavItems = [
     label: "Notifications",
     icon: Bell,
     path: "/settings/notifications"
+  },
+  {
+    id: "categories",
+    label: "Manage Categories",
+    icon: Tag,
+    path: "/settings/categories"
   }
 ];
 
@@ -47,7 +53,8 @@ export function SettingsLayout() {
   });
 
   // Adjust grid columns based on number of visible tabs
-  const gridCols = filteredNavItems.length === 4 ? "grid-cols-4" : 
+  const gridCols = filteredNavItems.length === 5 ? "grid-cols-5" :
+                   filteredNavItems.length === 4 ? "grid-cols-4" :
                    filteredNavItems.length === 3 ? "grid-cols-3" : "grid-cols-2";
 
   return (
@@ -68,13 +75,13 @@ export function SettingsLayout() {
         <Tabs value={currentTab} className="w-full">
           <TabsList className={`grid w-full ${gridCols} rounded-t-xl h-auto p-1`}>
             {filteredNavItems.map((item) => (
-              <TabsTrigger 
-                key={item.id} 
+              <TabsTrigger
+                key={item.id}
                 value={item.id}
                 asChild
                 className="data-[state=active]:bg-background data-[state=active]:text-foreground"
               >
-                <Link 
+                <Link
                   to={item.path}
                   className="flex items-center gap-2 px-4 py-3 rounded-lg transition-colors"
                 >
@@ -84,7 +91,7 @@ export function SettingsLayout() {
               </TabsTrigger>
             ))}
           </TabsList>
-          
+
           {/* Content */}
           <div className="p-6">
             <Outlet />

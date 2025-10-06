@@ -21,6 +21,7 @@ import { NotificationsPage } from "./pages/settings/NotificationsPage";
 import { FinancialDataLayout } from "./pages/settings/FinancialDataLayout";
 import { AccountPreferencesLayout } from "./pages/settings/AccountPreferencesLayout";
 import IncomeSourcesPage from "./pages/settings/IncomeSourcesPage";
+import CategoriesPage from "./pages/settings/CategoriesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,12 @@ const App = () => (
               <Route path="shared-goals" element={<SharedGoals />} />
               <Route path="subscriptions" element={<Subscriptions />} />
               <Route path="settings">
+                <Route index element={<Navigate to="profile" replace />} />
+                <Route path="profile" element={<ProfileSettingsPage />} />
+                <Route path="accounts" element={<AccountsPage />} />
+                <Route path="members" element={<MembersPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="categories" element={<CategoriesPage />} />
                 <Route path="financial-data" element={<FinancialDataLayout />}>
                   <Route index element={<Navigate to="accounts" replace />} />
                   <Route path="accounts" element={<AccountsPage />} />
