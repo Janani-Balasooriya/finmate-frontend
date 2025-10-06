@@ -284,13 +284,13 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Category Management</h2>
         <Button onClick={() => setIsAddCategoryModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Category
         </Button>
-      </div>
+      </div> */}
 
       <ResizablePanelGroup direction="horizontal" className="min-h-[600px] rounded-lg border">
         {/* Left Panel - Categories */}
