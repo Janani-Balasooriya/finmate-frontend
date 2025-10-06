@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { UserProvider } from "./contexts/UserContext";
@@ -47,10 +47,12 @@ const App = () => (
               <Route path="subscriptions" element={<Subscriptions />} />
               <Route path="settings">
                 <Route path="financial-data" element={<FinancialDataLayout />}>
+                  <Route index element={<Navigate to="accounts" replace />} />
                   <Route path="accounts" element={<AccountsPage />} />
                   <Route path="income-sources" element={<IncomeSourcesPage />} />
                 </Route>
                 <Route path="preferences" element={<AccountPreferencesLayout />}>
+                  <Route index element={<Navigate to="profile" replace />} />
                   <Route path="profile" element={<ProfileSettingsPage />} />
                   <Route path="notifications" element={<NotificationsPage />} />
                   <Route path="members" element={<MembersPage />} />
