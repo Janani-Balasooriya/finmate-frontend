@@ -28,7 +28,6 @@ export function IncomeTable({ rows, onEdit, onDelete }: Props) {
             <TableCell className="font-medium">{row.date}</TableCell>
             <TableCell>
               <Badge
-                variant="secondary"
                 className={`${row.sourceColor} text-white`}
               >
                 {row.source}
