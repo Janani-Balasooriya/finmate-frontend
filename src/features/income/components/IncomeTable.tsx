@@ -29,7 +29,7 @@ export function IncomeTable({ rows, onEdit, onDelete }: Props) {
             <TableCell>
               <Badge
                 variant="secondary"
-                className={row.type === "salary" ? "bg-blue-100 text-blue-700" : "bg-success/10 text-success"}
+                className={`${row.sourceColor} text-white`}
               >
                 {row.source}
               </Badge>

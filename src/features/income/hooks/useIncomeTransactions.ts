@@ -29,6 +29,7 @@ export function useIncomeTransactions() {
       dateIso: transaction.transactionDate.split('T')[0],
       source: transaction.incomeSourceName,
       sourceId: transaction.incomeSourceId,
+      sourceColor: transaction.incomeSourceColor,
       note: '', // Backend doesn't have notes field
       amount: `Rs. ${transaction.amount.toLocaleString()}`,
       account: transaction.accountName,

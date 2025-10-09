@@ -4,6 +4,7 @@ export type IncomeItem = {
   dateIso: string;     // e.g. "2025-01-15"
   source: string;      // e.g. "Salary"
   sourceId: number;    // e.g. 1
+  sourceColor: string; // e.g. "#FF5733"
   note: string;
   amount: string;      // e.g. "Rs. 80,000"
   account: string;     // e.g. "Bank Account"
