@@ -17,6 +17,7 @@ import { SettingsLayout } from "./pages/settings/SettingsLayout";
 import { ProfileSettingsPage } from "./pages/settings/ProfileSettingsPage";
 import AccountsPage from "./pages/settings/AccountsPage";
 import { MembersPage } from "./pages/settings/MembersPage";
+import { InvitationsPage } from "./pages/settings/InvitationsPage";
 import { NotificationsPage } from "./pages/settings/NotificationsPage";
 import { FinancialDataLayout } from "./pages/settings/FinancialDataLayout";
 import { AccountPreferencesLayout } from "./pages/settings/AccountPreferencesLayout";
@@ -63,6 +64,7 @@ const App = () => (
                   <Route path="profile" element={<ProfileSettingsPage />} />
                   <Route path="notifications" element={<NotificationsPage />} />
                   <Route path="members" element={<MembersPage />} />
+                  <Route path="invitations" element={<InvitationsPage />} />
                 </Route>
               </Route>
             </Route>

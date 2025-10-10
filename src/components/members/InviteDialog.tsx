@@ -56,16 +56,16 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
         email: data.email,
       });
       setInviteResult(invite);
-      
+
       toast({
-        title: "Invite sent successfully",
-        description: `Invitation sent to ${data.email}`,
+        title: "Invite link generated",
+        description: `Invitation link created for ${data.email}`,
       });
 
       onSuccess?.();
     } catch (error) {
       toast({
-        title: "Failed to send invite",
+        title: "Failed to generate invite",
         description: error instanceof Error ? error.message : "Something went wrong",
         variant: "destructive",
       });
@@ -107,9 +107,9 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Invite Team Member</DialogTitle>
+          <DialogTitle>Generate Invite Link</DialogTitle>
           <DialogDescription>
-            Send an invitation to join your FinMate workspace
+            Create an invitation link to share with team members
           </DialogDescription>
         </DialogHeader>
 
@@ -143,7 +143,7 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending..." : "Send invite"}
+                  {isSubmitting ? "Generating..." : "Generate link"}
                 </Button>
               </DialogFooter>
             </form>
@@ -152,14 +152,14 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
           <div className="space-y-4">
             <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
               <div className="text-sm">
-                <span className="text-muted-foreground">Invite sent to:</span>
+                <span className="text-muted-foreground">Invite link generated for:</span>
                 <div className="font-medium">{inviteResult.email}</div>
               </div>
-              
+
               {inviteResult.inviteLink && (
                 <div className="space-y-2">
                   <span className="text-sm text-muted-foreground">
-                    You can also share this direct link:
+                    Share this link with the person:
                   </span>
                   <div className="flex items-center gap-2">
                     <Input
