@@ -18,7 +18,7 @@ export type Invite = {
   status: "pending" | "sent" | "expired" | "revoked";
   invitedAt: string;
   expiresAt?: string | null;
-  inviteLink?: string;
+  token: string;
 };
 
 export type { Role, Status };

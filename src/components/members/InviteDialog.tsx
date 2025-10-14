@@ -75,10 +75,12 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
   };
 
   const handleCopyLink = async () => {
-    if (!inviteResult?.inviteLink) return;
-    
+    if (!inviteResult?.token) return;
+
+    const inviteUrl = `${window.location.origin}/auth?token=${inviteResult.token}`;
+
     try {
-      await navigator.clipboard.writeText(inviteResult.inviteLink);
+      await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
       toast({
         title: "Link copied",
@@ -156,14 +158,14 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
                 <div className="font-medium">{inviteResult.email}</div>
               </div>
 
-              {inviteResult.inviteLink && (
+              {inviteResult.token && (
                 <div className="space-y-2">
                   <span className="text-sm text-muted-foreground">
                     Share this link with the person:
                   </span>
                   <div className="flex items-center gap-2">
                     <Input
-                      value={inviteResult.inviteLink}
+                      value={`${window.location.origin}/auth?token=${inviteResult.token}`}
                       readOnly
                       className="text-xs"
                     />

@@ -33,7 +33,7 @@ const Auth = () => {
       setIsLogin(false);
       toast({
         title: "Invitation Detected",
-        description: "You've been invited to join a team. Please complete your registration.",
+        description: "You've been invited to join a family. You'll be added as a member.",
       });
     }
   }, [searchParams, toast]);
@@ -139,14 +139,14 @@ const Auth = () => {
                 {isLogin ? "Welcome Back" : (formData.inviteToken ? "Join Team" : "Create Account")}
               </h2>
               <p className="text-slate-600">
-                {isLogin ? "Please sign in to your account" : 
-                 formData.inviteToken ? "You've been invited to join a team. Please complete your registration." :
+                {isLogin ? "Please sign in to your account" :
+                 formData.inviteToken ? "You've been invited to join a family. You'll be added as a member." :
                  "Please fill in your information"}
               </p>
               {formData.inviteToken && (
                 <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm bg-emerald-100 text-emerald-800">
                   <span className="mr-2">🎉</span>
-                  Invitation Accepted
+                  Joining as Family Member
                 </div>
               )}
             </div>
