@@ -38,7 +38,7 @@ export function InviteSignup() {
   // Redirect authenticated users
   useEffect(() => {
     if (currentUser) {
-      navigate("/dashboard");
+      navigate("/");
     }
   }, [currentUser, navigate]);
 
@@ -105,7 +105,7 @@ export function InviteSignup() {
         description: `You've successfully joined ${inviteData.user.firstName}'s family`,
       });
 
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Registration failed";
       setError(errorMessage);
