@@ -146,6 +146,23 @@ export const authApi = {
     }
   },
 
+  // Validate invite token
+  async validateInvite(token: string): Promise<{
+    inviterName: string;
+    familyId: number;
+  }> {
+    const response = await httpClient.get<ApiResponse<{
+      inviterName: string;
+      familyId: number;
+    }>>(`/families/validate/${token}`, { skipAuth: true });
+
+    if (response.success && response.data) {
+      return response.data;
+    } else {
+      throw new Error(response.message || response.error || 'Invalid invite token');
+    }
+  },
+
   // Register new user, then log them in
   async register(userData: {
     email: string;

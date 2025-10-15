@@ -23,6 +23,7 @@ import { FinancialDataLayout } from "./pages/settings/FinancialDataLayout";
 import { AccountPreferencesLayout } from "./pages/settings/AccountPreferencesLayout";
 import { CategoriesLayout } from "./pages/settings/CategoriesLayout";
 import IncomeSourcesPage from "./pages/settings/IncomeSourcesPage";
+import { InviteSignup } from "./pages/InviteSignup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
         <UserProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/invite/:token" element={<InviteSignup />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <AppLayout />
