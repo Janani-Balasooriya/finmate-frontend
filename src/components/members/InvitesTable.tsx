@@ -216,6 +216,7 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">#</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Invited</TableHead>
               <TableHead>Expires</TableHead>
@@ -223,11 +224,15 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {invites.map((invite) => {
+            {invites.map((invite, index) => {
               const expired = isExpired(invite);
 
               return (
                 <TableRow key={invite.id}>
+                  <TableCell className="font-medium text-muted-foreground">
+                    {index + 1}
+                  </TableCell>
+
                   <TableCell>
                     <Badge
                       variant={expired ? "destructive" : "default"}
