@@ -39,7 +39,7 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
       setInviteResult(invite);
 
       // Generate QR code
-      const inviteUrl = `https://app.finmate.io/invite/${invite.token}`;
+      const inviteUrl = `${window.location.origin}/invite/${invite.token}`;
       const qrCodeDataUrl = await QRCode.toDataURL(inviteUrl);
       setQrCodeUrl(qrCodeDataUrl);
 
@@ -63,7 +63,7 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
   const handleCopyLink = async () => {
     if (!inviteResult?.token) return;
 
-    const inviteUrl = `https://app.finmate.io/invite/${inviteResult.token}`;
+    const inviteUrl = `${window.location.origin}/invite/${inviteResult.token}`;
 
     try {
       await navigator.clipboard.writeText(inviteUrl);
@@ -147,7 +147,7 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
                   </span>
                   <div className="flex items-center gap-2">
                     <Input
-                      value={`https://app.finmate.io/invite/${inviteResult.token}`}
+                      value={`${window.location.origin}/invite/${inviteResult.token}`}
                       readOnly
                       className="text-xs"
                     />
