@@ -12,7 +12,7 @@ export interface User {
   lastName: string;
   role: string;
   status: string;
-  families?: {
+  families: {
     id: number;
   };
   createdAt?: string;

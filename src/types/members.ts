@@ -14,9 +14,10 @@ export type Member = {
 export type Invite = {
   id: string;
   email?: string;
-  role: "MEMBER"; // All invitations are for MEMBER role
+  role: Role; // Invitations can be for any role
   status: "pending" | "sent" | "expired" | "revoked";
   invitedAt: string;
+  createdAt?: string;
   expiresAt?: string | null;
   token: string;
 };

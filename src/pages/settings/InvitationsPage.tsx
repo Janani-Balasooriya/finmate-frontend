@@ -22,7 +22,7 @@ export function InvitationsPage() {
 
   // Check if user has admin role
   useEffect(() => {
-    if (!loading && user?.role !== "admin") {
+    if (!loading && user && user.role !== "admin") {
       // Redirect non-admin users to profile settings
       navigate("/settings/preferences/profile");
     }
@@ -41,7 +41,7 @@ export function InvitationsPage() {
   }
 
   // Show access denied for non-admin users
-  if (user?.role !== "admin") {
+  if (user && user.role !== "admin") {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">

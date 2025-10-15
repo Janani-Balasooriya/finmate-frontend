@@ -50,7 +50,6 @@ import { useUser } from "@/contexts/UserContext";
 const roleIcons = {
   ADMIN: Shield,
   MEMBER: User,
-  VIEWER: Eye,
 };
 
 const statusVariants = {
@@ -75,18 +74,23 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   useEffect(() => {
-    loadInvites();
-  }, []);
+    if (user) {
+      loadInvites();
+    }
+  }, [user]);
 
   const loadInvites = async () => {
     try {
-      const familyId = user?.families?.id?.toString();
+      if (!user || !user.families?.id) {
+        throw new Error("User family information not available");
+      }
+      const familyId = user.families.id.toString();
       const data = await listInvites(familyId);
       setInvites(data);
     } catch (error) {
       toast({
         title: "Failed to load invites",
-        description: "Could not fetch pending invitations",
+        description: error instanceof Error ? error.message : "Could not fetch pending invitations",
         variant: "destructive",
       });
     } finally {
@@ -97,7 +101,10 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
   const handleResendInvite = async (invite: Invite) => {
     setActionLoading(invite.id);
     try {
-      const familyId = user?.families?.id?.toString();
+      if (!user || !user.families?.id) {
+        throw new Error("User family information not available");
+      }
+      const familyId = user.families.id.toString();
       await resendInvite(invite.id, familyId);
       await loadInvites(); // Refresh to get updated data
       toast({
@@ -120,7 +127,10 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
 
     setActionLoading(revokeDialog.invite.id);
     try {
-      const familyId = user?.families?.id?.toString();
+      if (!user || !user.families?.id) {
+        throw new Error("User family information not available");
+      }
+      const familyId = user.families.id.toString();
       await revokeInvite(revokeDialog.invite.id, familyId);
       setInvites(prev => prev.filter(i => i.id !== revokeDialog.invite!.id));
       toast({
@@ -206,8 +216,6 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Invited</TableHead>
               <TableHead>Expires</TableHead>
@@ -216,51 +224,30 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
           </TableHeader>
           <TableBody>
             {invites.map((invite) => {
-              const RoleIcon = roleIcons[invite.role];
               const expired = isExpired(invite);
-              
+
               return (
                 <TableRow key={invite.id}>
-                  <TableCell className="font-medium">{invite.email}</TableCell>
-                  
                   <TableCell>
-                    <Badge variant="outline" className="gap-1">
-                      <RoleIcon className="h-3 w-3" />
-                      {invite.role}
-                    </Badge>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <Badge 
-                      variant={expired ? "outline" : statusVariants[invite.status]}
-                      className={expired ? "text-muted-foreground" : ""}
+                    <Badge
+                      variant={expired ? "destructive" : "default"}
+                      className={expired ? "" : "bg-green-100 text-green-800 hover:bg-green-100"}
                     >
-                      {expired ? "Expired" : invite.status}
+                      {expired ? "Expired" : "Active"}
                     </Badge>
                   </TableCell>
-                  
+
                   <TableCell className="text-muted-foreground">
-                    {formatDate(invite.invitedAt)}
+                    {invite.createdAt ? formatDate(invite.createdAt) : formatDate(invite.invitedAt)}
                   </TableCell>
-                  
+
                   <TableCell className="text-muted-foreground">
                     {invite.expiresAt ? formatDate(invite.expiresAt) : "-"}
                   </TableCell>
-                  
+
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      {expired ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleResendInvite(invite)}
-                          disabled={actionLoading === invite.id}
-                          className="gap-1"
-                        >
-                          <RotateCcw className="h-3 w-3" />
-                          Resend
-                        </Button>
-                      ) : (
+                      {expired ? null : (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -272,11 +259,6 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleResendInvite(invite)}>
-                              <RotateCcw className="h-4 w-4 mr-2" />
-                              Resend
-                            </DropdownMenuItem>
-                            
                             <DropdownMenuItem onClick={() => handleCopyLink(invite)}>
                               {copiedLink === invite.id ? (
                                 <Check className="h-4 w-4 mr-2" />
@@ -285,7 +267,7 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
                               )}
                               {copiedLink === invite.id ? "Copied!" : "Copy link"}
                             </DropdownMenuItem>
-                            
+
                             <DropdownMenuItem
                               onClick={() => setRevokeDialog({ open: true, invite })}
                               className="text-destructive focus:text-destructive"

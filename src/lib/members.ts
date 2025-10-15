@@ -27,7 +27,7 @@ export async function listMembers(query?: string): Promise<Member[]> {
   }
 }
 
-export async function listInvites(familyId?: string): Promise<Invite[]> {
+export async function listInvites(familyId: string): Promise<Invite[]> {
   try {
     // Use family-specific endpoint to get invites for current user's family
     const endpoint =  `/families/${familyId}/invites`;
