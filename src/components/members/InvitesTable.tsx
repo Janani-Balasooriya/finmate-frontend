@@ -150,7 +150,7 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
   };
 
   const handleCopyLink = async (invite: Invite) => {
-    const inviteUrl = `https://app.finmate.io/invite/${invite.token}`;
+    const inviteUrl = `${window.location.origin}/invite/${invite.token}`;
 
     try {
       await navigator.clipboard.writeText(inviteUrl);
