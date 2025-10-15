@@ -1,8 +1,6 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Copy, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Copy, Check, QrCode } from "lucide-react";
+import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,24 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { inviteMember } from "@/lib/members";
 import { Invite } from "@/types/members";
-
-const inviteSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-});
-
-type InviteForm = z.infer<typeof inviteSchema>;
+import { useUser } from "@/contexts/UserContext";
 
 interface InviteDialogProps {
   open: boolean;
@@ -38,28 +23,29 @@ interface InviteDialogProps {
 }
 
 export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProps) {
+  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inviteResult, setInviteResult] = useState<Invite | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 
-  const form = useForm<InviteForm>({
-    resolver: zodResolver(inviteSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
-
-  const handleSubmit = async (data: InviteForm) => {
+  const handleGenerateLink = async () => {
     setIsSubmitting(true);
     try {
       const invite = await inviteMember({
-        email: data.email,
+        familyId: user?.families?.id?.toString()
       });
       setInviteResult(invite);
 
+      // Generate QR code
+      const inviteUrl = `https://app.finmate.io/invite/${invite.token}`;
+      const qrCodeDataUrl = await QRCode.toDataURL(inviteUrl);
+      setQrCodeUrl(qrCodeDataUrl);
+
       toast({
         title: "Invite link generated",
-        description: `Invitation link created for ${data.email}`,
+        description: "Invitation link created successfully",
       });
 
       onSuccess?.();
@@ -77,7 +63,7 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
   const handleCopyLink = async () => {
     if (!inviteResult?.token) return;
 
-    const inviteUrl = `${window.location.origin}/auth?token=${inviteResult.token}`;
+    const inviteUrl = `https://app.finmate.io/invite/${inviteResult.token}`;
 
     try {
       await navigator.clipboard.writeText(inviteUrl);
@@ -98,11 +84,28 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
 
   const handleClose = (open: boolean) => {
     if (!open) {
-      form.reset();
       setInviteResult(null);
       setCopied(false);
+      setShowQR(false);
+      setQrCodeUrl("");
     }
     onOpenChange(open);
+  };
+
+  const getExpirationText = () => {
+    if (!inviteResult?.expiresAt) return "";
+    const expiresAt = new Date(inviteResult.expiresAt);
+    const now = new Date();
+    const diffMs = expiresAt.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 1) {
+      return `Expires in ${diffDays} days`;
+    } else if (diffDays === 1) {
+      return "Expires in 1 day";
+    } else {
+      return "Expires soon";
+    }
   };
 
   return (
@@ -116,56 +119,35 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
         </DialogHeader>
 
         {!inviteResult ? (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email address</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="colleague@company.com"
-                        type="email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleClose(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Generating..." : "Generate link"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+          <div className="space-y-4">
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleClose(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleGenerateLink} disabled={isSubmitting}>
+                {isSubmitting ? "Generating..." : "Create invite link"}
+              </Button>
+            </DialogFooter>
+          </div>
         ) : (
           <div className="space-y-4">
             <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
-              <div className="text-sm">
-                <span className="text-muted-foreground">Invite link generated for:</span>
-                <div className="font-medium">{inviteResult.email}</div>
+              <div className="text-sm text-muted-foreground">
+                {getExpirationText()}
               </div>
 
               {inviteResult.token && (
                 <div className="space-y-2">
                   <span className="text-sm text-muted-foreground">
-                    Share this link with the person:
+                    Share this invitation link:
                   </span>
                   <div className="flex items-center gap-2">
                     <Input
-                      value={`${window.location.origin}/auth?token=${inviteResult.token}`}
+                      value={`https://app.finmate.io/invite/${inviteResult.token}`}
                       readOnly
                       className="text-xs"
                     />
@@ -182,6 +164,32 @@ export function InviteDialog({ open, onOpenChange, onSuccess }: InviteDialogProp
                       )}
                     </Button>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowQR(!showQR)}
+                      className="flex items-center gap-1"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      {showQR ? "Hide QR Code" : "Show QR Code"}
+                    </Button>
+                  </div>
+                  {showQR && (
+                    <div className="flex justify-center p-4 bg-white rounded border">
+                      {qrCodeUrl ? (
+                        <img
+                          src={qrCodeUrl}
+                          alt="QR Code for invite link"
+                          className="max-w-full h-auto"
+                        />
+                      ) : (
+                        <div className="text-xs text-muted-foreground">
+                          Generating QR Code...
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

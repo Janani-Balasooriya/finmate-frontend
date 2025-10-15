@@ -2,6 +2,7 @@
 
 import { Member, Invite, Role } from "@/types/members";
 import { httpClient } from "./http";
+import { useUser } from "@/contexts/UserContext";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -14,7 +15,7 @@ export async function listMembers(query?: string): Promise<Member[]> {
   try {
     const endpoint = query ? `/members?query=${encodeURIComponent(query)}` : '/members';
     const response = await httpClient.get<ApiResponse<Member[]>>(endpoint);
-    
+
     if (response.success && response.data) {
       return response.data;
     } else {
@@ -26,10 +27,12 @@ export async function listMembers(query?: string): Promise<Member[]> {
   }
 }
 
-export async function listInvites(): Promise<Invite[]> {
+export async function listInvites(familyId?: string): Promise<Invite[]> {
   try {
-    const response = await httpClient.get<ApiResponse<Invite[]>>('/invites');
-    
+    // Use family-specific endpoint to get invites for current user's family
+    const endpoint =  `/families/${familyId}/invites`;
+    const response = await httpClient.get<ApiResponse<Invite[]>>(endpoint);
+
     if (response.success && response.data) {
       return response.data;
     } else {
@@ -41,12 +44,15 @@ export async function listInvites(): Promise<Invite[]> {
   }
 }
 
-export async function inviteMember(input: { 
-  email: string; 
+export async function inviteMember(input?: {
+  email?: string;
+  familyId?: string;
 }): Promise<Invite> {
   try {
-    const response = await httpClient.post<ApiResponse<Invite>>('/invites', input);
-    
+    // Use family-specific endpoint if familyId is provided, otherwise use generic invites
+    const endpoint = input?.familyId ? `/families/${input.familyId}/invites` : '/invites';
+    const response = await httpClient.post<ApiResponse<Invite>>(endpoint, {});
+
     if (response.success && response.data) {
       return response.data;
     } else {
@@ -58,10 +64,11 @@ export async function inviteMember(input: {
   }
 }
 
-export async function resendInvite(id: string): Promise<void> {
+export async function resendInvite(id: string, familyId?: string): Promise<void> {
   try {
-    const response = await httpClient.post<ApiResponse<void>>(`/invites/${id}/resend`);
-    
+    const endpoint = familyId ? `/families/${familyId}/invites/${id}/resend` : `/invites/${id}/resend`;
+    const response = await httpClient.post<ApiResponse<void>>(endpoint);
+
     if (!response.success) {
       throw new Error(response.message || response.error || 'Failed to resend invitation');
     }
@@ -71,10 +78,11 @@ export async function resendInvite(id: string): Promise<void> {
   }
 }
 
-export async function revokeInvite(id: string): Promise<void> {
+export async function revokeInvite(id: string, familyId?: string): Promise<void> {
   try {
-    const response = await httpClient.delete<ApiResponse<void>>(`/invites/${id}`);
-    
+    const endpoint = familyId ? `/families/${familyId}/invites/${id}` : `/invites/${id}`;
+    const response = await httpClient.delete<ApiResponse<void>>(endpoint);
+
     if (!response.success) {
       throw new Error(response.message || response.error || 'Failed to revoke invitation');
     }
@@ -87,7 +95,7 @@ export async function revokeInvite(id: string): Promise<void> {
 export async function updateRole(id: string, role: Role): Promise<Member> {
   try {
     const response = await httpClient.patch<ApiResponse<Member>>(`/members/${id}/role`, { role });
-    
+
     if (response.success && response.data) {
       return response.data;
     } else {
@@ -102,7 +110,7 @@ export async function updateRole(id: string, role: Role): Promise<Member> {
 export async function removeMember(id: string): Promise<void> {
   try {
     const response = await httpClient.delete<ApiResponse<void>>(`/members/${id}`);
-    
+
     if (!response.success) {
       throw new Error(response.message || response.error || 'Failed to remove member');
     }

@@ -39,12 +39,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { 
-  listInvites, 
-  resendInvite, 
-  revokeInvite 
+import {
+  listInvites,
+  resendInvite,
+  revokeInvite
 } from "@/lib/members";
 import { Invite } from "@/types/members";
+import { useUser } from "@/contexts/UserContext";
 
 const roleIcons = {
   ADMIN: Shield,
@@ -63,6 +64,7 @@ interface InvitesTableProps {
 }
 
 export function InvitesTable({ onInviteClick }: InvitesTableProps) {
+  const { user } = useUser();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -78,7 +80,8 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
 
   const loadInvites = async () => {
     try {
-      const data = await listInvites();
+      const familyId = user?.families?.id?.toString();
+      const data = await listInvites(familyId);
       setInvites(data);
     } catch (error) {
       toast({
@@ -94,7 +97,8 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
   const handleResendInvite = async (invite: Invite) => {
     setActionLoading(invite.id);
     try {
-      await resendInvite(invite.id);
+      const familyId = user?.families?.id?.toString();
+      await resendInvite(invite.id, familyId);
       await loadInvites(); // Refresh to get updated data
       toast({
         title: "Invite resent",
@@ -116,7 +120,8 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
 
     setActionLoading(revokeDialog.invite.id);
     try {
-      await revokeInvite(revokeDialog.invite.id);
+      const familyId = user?.families?.id?.toString();
+      await revokeInvite(revokeDialog.invite.id, familyId);
       setInvites(prev => prev.filter(i => i.id !== revokeDialog.invite!.id));
       toast({
         title: "Invite revoked",
@@ -135,10 +140,10 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
   };
 
   const handleCopyLink = async (invite: Invite) => {
-    if (!invite.inviteLink) return;
-    
+    const inviteUrl = `https://app.finmate.io/invite/${invite.token}`;
+
     try {
-      await navigator.clipboard.writeText(invite.inviteLink);
+      await navigator.clipboard.writeText(inviteUrl);
       setCopiedLink(invite.id);
       toast({
         title: "Link copied",
@@ -272,16 +277,14 @@ export function InvitesTable({ onInviteClick }: InvitesTableProps) {
                               Resend
                             </DropdownMenuItem>
                             
-                            {invite.inviteLink && (
-                              <DropdownMenuItem onClick={() => handleCopyLink(invite)}>
-                                {copiedLink === invite.id ? (
-                                  <Check className="h-4 w-4 mr-2" />
-                                ) : (
-                                  <Copy className="h-4 w-4 mr-2" />
-                                )}
-                                {copiedLink === invite.id ? "Copied!" : "Copy link"}
-                              </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem onClick={() => handleCopyLink(invite)}>
+                              {copiedLink === invite.id ? (
+                                <Check className="h-4 w-4 mr-2" />
+                              ) : (
+                                <Copy className="h-4 w-4 mr-2" />
+                              )}
+                              {copiedLink === invite.id ? "Copied!" : "Copy link"}
+                            </DropdownMenuItem>
                             
                             <DropdownMenuItem
                               onClick={() => setRevokeDialog({ open: true, invite })}

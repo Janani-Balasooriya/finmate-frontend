@@ -13,7 +13,7 @@ export type Member = {
 
 export type Invite = {
   id: string;
-  email: string;
+  email?: string;
   role: "MEMBER"; // All invitations are for MEMBER role
   status: "pending" | "sent" | "expired" | "revoked";
   invitedAt: string;

@@ -12,6 +12,9 @@ export interface User {
   lastName: string;
   role: string;
   status: string;
+  families?: {
+    id: number;
+  };
   createdAt?: string;
   updatedAt?: string;
 }
