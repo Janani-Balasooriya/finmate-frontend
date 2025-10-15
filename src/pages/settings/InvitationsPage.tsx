@@ -17,6 +17,7 @@ import { useEffect } from "react";
 
 export function InvitationsPage() {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { user, loading } = useUser();
   const navigate = useNavigate();
 
@@ -79,14 +80,15 @@ export function InvitationsPage() {
       </div>
 
       {/* Invitations Table */}
-      <InvitesTable onInviteClick={() => setIsInviteOpen(true)} />
+      <InvitesTable key={refreshKey} onInviteClick={() => setIsInviteOpen(true)} />
 
       {/* Invite Dialog */}
       <InviteDialog
         open={isInviteOpen}
         onOpenChange={setIsInviteOpen}
         onSuccess={() => {
-          // Refresh or update state if needed
+          // Refresh the invitations table by changing the key
+          setRefreshKey(prev => prev + 1);
         }}
       />
     </div>
