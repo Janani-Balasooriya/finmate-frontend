@@ -33,7 +33,7 @@ export function IncomeTable({ rows, onEdit, onDelete }: Props) {
                 {row.source}
               </Badge>
             </TableCell>
-            <TableCell className="font-semibold">{row.amount}</TableCell>
+            <TableCell className="font-semibold">{row.amountDisplay}</TableCell>
             <TableCell>{row.account}</TableCell>
             <TableCell>
               <div className="flex items-center gap-2">

@@ -17,12 +17,12 @@ export function useIncomeTransactions() {
 
   const formatTransactionToIncomeItem = (transaction: IncomeTransactionItem): IncomeItem => {
     const date = new Date(transaction.transactionDate);
-    const formattedDate = date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    const formattedDate = date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
-    
+
     return {
       id: transaction.id,
       date: formattedDate,
@@ -31,7 +31,8 @@ export function useIncomeTransactions() {
       sourceId: transaction.incomeSourceId,
       sourceColor: transaction.incomeSourceColor,
       note: '', // Backend doesn't have notes field
-      amount: `Rs. ${transaction.amount.toLocaleString()}`,
+      amountDisplay: `Rs. ${transaction.amount.toLocaleString()}`,
+      amountValue: Number(transaction.amount ?? 0),
       account: transaction.accountName,
       accountId: transaction.accountId,
       type: transaction.incomeSourceColor || 'default'

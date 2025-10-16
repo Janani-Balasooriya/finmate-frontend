@@ -50,8 +50,8 @@ export default function IncomePage() {
     sourceFilter === "all" || String(item.sourceId) === sourceFilter
   );
   const sorted = [...filtered].sort((a, b) => {
-    const A = Number(a.amount.replace(/[^\d.]/g, "").replace(/,/g, "")) || 0;
-    const B = Number(b.amount.replace(/[^\d.]/g, "").replace(/,/g, "")) || 0;
+    const A = a.amountValue ?? 0;
+    const B = b.amountValue ?? 0;
     if (amountSortOrder === "high-to-low") return B - A;
     if (amountSortOrder === "low-to-high") return A - B;
     return 0; // "recent" – keep backend order
@@ -207,7 +207,11 @@ export default function IncomePage() {
       </Card>
 
       {/* Total */}
-      <TotalIncomeCard summary={summary} rows={sorted} />
+      <TotalIncomeCard
+        summary={summary}
+        rows={sorted}
+        useFiltered={!!(dateRange.from || dateRange.to) || sourceFilter !== "all"}
+      />
 
       {/* Dialogs */}
       <AddIncomeDialog

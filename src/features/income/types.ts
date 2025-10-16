@@ -6,7 +6,8 @@ export type IncomeItem = {
   sourceId: number;    // e.g. 1
   sourceColor: string; // e.g. "#FF5733"
   note: string;
-  amount: string;      // e.g. "Rs. 80,000"
+  amountDisplay: string;      // e.g. "Rs. 80,000"
+  amountValue: number;        // e.g. 80000 (pure number in rupees)
   account: string;     // e.g. "Bank Account"
   accountId: number;   // e.g. 1
   type: string;        // e.g. "salary" | "freelance" | ...
