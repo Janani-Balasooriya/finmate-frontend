@@ -37,17 +37,17 @@ export const budgetsApi = {
   },
 
   async create(payload: CreateOrUpdateBudgetPayload, familyId?: string): Promise<BudgetItemDto> {
-    const endpoint = familyId ? `/families/${familyId}/budgets` : '/budgets';
+    const endpoint = familyId ? '/budgets/family' : '/budgets';
     return httpClient.post(endpoint, payload);
   },
 
   async update(id: number, payload: CreateOrUpdateBudgetPayload, familyId?: string): Promise<BudgetItemDto> {
-    const endpoint = familyId ? `/families/${familyId}/budgets/${id}` : `/budgets/${id}`;
+    const endpoint = familyId ? `/budgets/family/${id}` : `/budgets/${id}`;
     return httpClient.put(endpoint, payload);
   },
 
   async remove(id: number, familyId?: string): Promise<void> {
-    const endpoint = familyId ? `/families/${familyId}/budgets/${id}` : `/budgets/${id}`;
+    const endpoint = familyId ? `/budgets/family/${id}` : `/budgets/${id}`;
     return httpClient.delete(endpoint);
   },
 };
