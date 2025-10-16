@@ -6,8 +6,10 @@ export interface ExpenseTransactionItem {
   transactionDate: string;
   accountId: number;
   accountName: string;
-  categoryItemId: number;
+  categoryId: number;
   categoryName: string;
+  categoryItemId: number;
+  categoryItemName: string;
   categoryColor: string;
   subscriptionId?: number;
   subscriptionName?: string;

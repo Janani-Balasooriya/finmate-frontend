@@ -223,6 +223,7 @@ const Expenses = () => {
       <AddExpenseDialog
         open={isAddExpenseOpen}
         onOpenChange={setIsAddExpenseOpen}
+        onExpenseAdded={() => loadTransactions()}
       />
     </div>
   );

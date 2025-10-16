@@ -17,7 +17,7 @@ export function ExpenseTable({ rows, onEdit, onDelete }: Props) {
         <TableRow>
           <TableHead>Date</TableHead>
           <TableHead>Category</TableHead>
-          <TableHead>Category Item</TableHead>
+          <TableHead>Item</TableHead>
           <TableHead>Amount</TableHead>
           <TableHead>Account</TableHead>
           <TableHead>Actions</TableHead>

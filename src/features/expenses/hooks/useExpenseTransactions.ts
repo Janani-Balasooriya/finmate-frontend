@@ -23,8 +23,8 @@ export function useExpenseTransactions() {
       date: formattedDate,
       dateIso: transaction.transactionDate.toString().split('T')[0],
       category: transaction.categoryName,
-      categoryId: transaction.categoryItemId, // Note: this is actually category item id, but we'll use it as category id for now
-      categoryItem: transaction.categoryName, // The API returns categoryName as the item name
+      categoryId: transaction.categoryId,
+      categoryItem: transaction.categoryItemName,
       categoryItemId: transaction.categoryItemId,
       categoryColor: transaction.categoryColor,
       amountDisplay: `Rs. ${transaction.amount.toLocaleString()}`,
