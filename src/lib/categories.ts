@@ -1,4 +1,5 @@
 import { httpClient } from './http';
+import { BudgetsResponseDto } from './budgets';
 
 export interface ExpenseCategoryDto {
   id: number;
@@ -37,7 +38,15 @@ export interface UpdateCategoryItemPayload {
 
 export const categoriesApi = {
   async getCategories(): Promise<ExpenseCategoryDto[]> {
-    return httpClient.get('/categories');
+    const response: BudgetsResponseDto = await httpClient.get('/budgets/family');
+    // Map BudgetItem to ExpenseCategoryDto
+    return response.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      icon: item.icon,
+      color: item.color,
+      budgetAmount: item.budgetAmount
+    }));
   },
 
   async createCategory(payload: CreateCategoryPayload): Promise<ExpenseCategoryDto> {

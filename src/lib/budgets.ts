@@ -31,20 +31,24 @@ export interface CreateOrUpdateBudgetPayload {
 }
 
 export const budgetsApi = {
-  async get(): Promise<BudgetsResponseDto> {
-    return httpClient.get('/budgets');
+  async get(familyId?: string): Promise<BudgetsResponseDto> {
+    const endpoint = familyId ? '/budgets/family' : '/budgets';
+    return httpClient.get(endpoint);
   },
 
-  async create(payload: CreateOrUpdateBudgetPayload): Promise<BudgetItemDto> {
-    return httpClient.post('/budgets', payload);
+  async create(payload: CreateOrUpdateBudgetPayload, familyId?: string): Promise<BudgetItemDto> {
+    const endpoint = familyId ? `/families/${familyId}/budgets` : '/budgets';
+    return httpClient.post(endpoint, payload);
   },
 
-  async update(id: number, payload: CreateOrUpdateBudgetPayload): Promise<BudgetItemDto> {
-    return httpClient.put(`/budgets/${id}`, payload);
+  async update(id: number, payload: CreateOrUpdateBudgetPayload, familyId?: string): Promise<BudgetItemDto> {
+    const endpoint = familyId ? `/families/${familyId}/budgets/${id}` : `/budgets/${id}`;
+    return httpClient.put(endpoint, payload);
   },
 
-  async remove(id: number): Promise<void> {
-    return httpClient.delete(`/budgets/${id}`);
+  async remove(id: number, familyId?: string): Promise<void> {
+    const endpoint = familyId ? `/families/${familyId}/budgets/${id}` : `/budgets/${id}`;
+    return httpClient.delete(endpoint);
   },
 };
 

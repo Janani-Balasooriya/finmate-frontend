@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { budgetsApi, BudgetsResponseDto, BudgetItemDto } from "@/lib/budgets";
+import { useUser } from "@/contexts/UserContext";
 
 type ToastFn = (o: { title: string; description?: string; variant?: string }) => void;
 
 export function useBudgets(toast?: ToastFn) {
+  const { user } = useUser();
   const [data, setData] = useState<BudgetsResponseDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +16,11 @@ export function useBudgets(toast?: ToastFn) {
   const fetchBudgets = async () => {
     try {
       setLoading(true);
-      const res = await budgetsApi.get();
+      if (!user || !user.families?.id) {
+        throw new Error("User family information not available");
+      }
+      const familyId = user.families.id.toString();
+      const res = await budgetsApi.get(familyId);
       setData(res);
       setError(null);
     } catch (e: any) {
@@ -31,9 +37,11 @@ export function useBudgets(toast?: ToastFn) {
   };
 
   useEffect(() => {
-    fetchBudgets();
+    if (user) {
+      fetchBudgets();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   // Directly expose create/update/remove, but the page can decide when to refetch.
   const create = (payload: { name: string; icon: string; color: string; budgetAmount: number }) =>
