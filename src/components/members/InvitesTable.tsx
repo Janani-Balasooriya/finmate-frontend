@@ -48,8 +48,8 @@ import { Invite } from "@/types/members";
 import { useUser } from "@/contexts/UserContext";
 
 const roleIcons = {
-  ADMIN: Shield,
-  MEMBER: User,
+  admin: Shield,
+  member: User,
 };
 
 const statusVariants = {

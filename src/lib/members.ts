@@ -11,9 +11,11 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-export async function listMembers(query?: string): Promise<Member[]> {
+export async function listMembers(familyId: string, query?: string): Promise<Member[]> {
   try {
-    const endpoint = query ? `/members?query=${encodeURIComponent(query)}` : '/members';
+    const endpoint = query
+      ? `/families/${familyId}/members?query=${encodeURIComponent(query)}`
+      : `/families/${familyId}/members`;
     const response = await httpClient.get<ApiResponse<Member[]>>(endpoint);
 
     if (response.success && response.data) {

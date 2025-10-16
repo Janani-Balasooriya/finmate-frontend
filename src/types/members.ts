@@ -1,4 +1,4 @@
-type Role = "ADMIN" | "MEMBER";
+type Role = "owner" | "admin" | "member" | "viewer";
 type Status = "active" | "invited" | "pending" | "expired";
 
 export type Member = {

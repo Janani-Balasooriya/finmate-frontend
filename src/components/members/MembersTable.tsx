@@ -41,22 +41,24 @@ import { toast } from "@/hooks/use-toast";
 import { listMembers, updateRole, removeMember } from "@/lib/members";
 import { Member, Role } from "@/types/members";
 import { RoleDropdown } from "./RoleDropdown";
+import { useUser } from "@/contexts/UserContext";
 
 const roleIcons = {
-  OWNER: Crown,
-  ADMIN: Shield,
-  MEMBER: User,
-  VIEWER: Eye,
+  owner: Crown,
+  admin: Shield,
+  member: User,
+  viewer: Eye,
 };
 
 const roleVariants = {
-  OWNER: "secondary" as const,
-  ADMIN: "default" as const,
-  MEMBER: "outline" as const,
-  VIEWER: "outline" as const,
+  owner: "secondary" as const,
+  admin: "default" as const,
+  member: "outline" as const,
+  viewer: "outline" as const,
 };
 
 export function MembersTable() {
+  const { user } = useUser();
   const [members, setMembers] = useState<Member[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,12 +90,16 @@ export function MembersTable() {
 
   const loadMembers = async () => {
     try {
-      const data = await listMembers();
+      if (!user || !user.families?.id) {
+        throw new Error("User family information not available");
+      }
+      const familyId = user.families.id.toString();
+      const data = await listMembers(familyId);
       setMembers(data);
     } catch (error) {
       toast({
         title: "Failed to load members",
-        description: "Could not fetch team members",
+        description: error instanceof Error ? error.message : "Could not fetch team members",
         variant: "destructive",
       });
     } finally {
@@ -204,7 +210,6 @@ export function MembersTable() {
             <TableRow>
               <TableHead>Member</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Joined</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -234,19 +239,15 @@ export function MembersTable() {
                   </TableCell>
                   
                    <TableCell>
-                     <RoleDropdown
-                       currentRole={member.role}
-                       onRoleChange={(newRole) => handleRoleUpdate(member.id, newRole)}
-                       disabled={updateLoading === member.id}
-                     />
-                   </TableCell>
-                  
-                  <TableCell className="text-muted-foreground">
-                    {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : "-"}
-                  </TableCell>
-                  
-                   <TableCell>
-                     {member.role !== "OWNER" && (
+                      <RoleDropdown
+                        currentRole={member.role}
+                        onRoleChange={(newRole) => handleRoleUpdate(member.id, newRole)}
+                        disabled={updateLoading === member.id}
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                     {member.role !== "admin" && (
                        <DropdownMenu>
                          <DropdownMenuTrigger asChild>
                            <Button

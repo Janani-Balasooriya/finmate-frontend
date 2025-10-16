@@ -9,10 +9,10 @@ import {
 import { Role } from "@/types/members";
 
 const roleConfig = {
-  OWNER: { icon: Crown, label: "Owner", variant: "secondary" as const },
-  ADMIN: { icon: Shield, label: "Admin", variant: "default" as const },
-  MEMBER: { icon: User, label: "Member", variant: "outline" as const },
-  VIEWER: { icon: Eye, label: "Viewer", variant: "outline" as const },
+  owner: { icon: Crown, label: "Owner", variant: "secondary" as const },
+  admin: { icon: Shield, label: "Admin", variant: "default" as const },
+  member: { icon: User, label: "Member", variant: "outline" as const },
+  viewer: { icon: Eye, label: "Viewer", variant: "outline" as const },
 };
 
 interface RoleDropdownProps {
@@ -22,7 +22,7 @@ interface RoleDropdownProps {
 }
 
 export function RoleDropdown({ currentRole, onRoleChange, disabled }: RoleDropdownProps) {
-  const isOwner = currentRole === "OWNER";
+  const isOwner = currentRole === "owner";
   const config = roleConfig[currentRole];
   const Icon = config.icon;
 
@@ -48,7 +48,7 @@ export function RoleDropdown({ currentRole, onRoleChange, disabled }: RoleDropdo
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="bg-popover">
         {(Object.entries(roleConfig) as [Role, typeof roleConfig[Role]][])
-          .filter(([role]) => role !== "OWNER")
+          .filter(([role]) => role !== "owner")
           .map(([role, conf]) => {
             const RoleIcon = conf.icon;
             return (
