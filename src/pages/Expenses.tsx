@@ -11,11 +11,15 @@ import { useExpenseCategories } from "@/features/expenses/hooks/useExpenseCatego
 import { ExpenseTable } from "@/features/expenses/components/ExpenseTable";
 import { TotalExpensesCard } from "@/features/expenses/components/TotalExpensesCard";
 import { AddExpenseDialog } from "@/features/expenses/components/AddExpenseDialog";
+import { EditExpenseDialog } from "@/features/expenses/components/EditExpenseDialog";
+import { DeleteExpenseDialog } from "@/features/expenses/components/DeleteExpenseDialog";
 import { ExpenseItem, DateRange } from "@/features/expenses/types";
+import { accountsApi, AccountItemDto } from "@/lib/accounts";
+import { expenseCategoriesApi } from "@/lib/expenses";
 
 const Expenses = () => {
   const { toast } = useToast();
-  const { transactions, loading, loadTransactions, loadTransactionsByDateRange, summary } = useExpenseTransactions();
+  const { transactions, loading, loadTransactions, loadTransactionsByDateRange, summary, updateTransaction, deleteTransaction } = useExpenseTransactions();
   const { categories, items, loadCategories, loadItems } = useExpenseCategories();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -24,11 +28,17 @@ const Expenses = () => {
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [isDateRangePickerOpen, setIsDateRangePickerOpen] = useState(false);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [isEditExpenseOpen, setIsEditExpenseOpen] = useState(false);
+  const [isDeleteExpenseOpen, setIsDeleteExpenseOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseItem | null>(null);
+  const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
+  const [editExpenseItems, setEditExpenseItems] = useState<any[]>([]);
 
   // Load initial data
   useEffect(() => {
     loadCategories();
     loadTransactions();
+    accountsApi.getActive().then(setAccounts).catch(console.error);
   }, [loadCategories, loadTransactions]);
 
   // Update items when category changes
@@ -100,20 +110,63 @@ const Expenses = () => {
     loadTransactions();
   };
 
-  const handleEdit = (expense: ExpenseItem) => {
-    // TODO: Implement edit functionality
-    toast({
-      title: "Edit",
-      description: `Edit expense ${expense.id}`,
-    });
+  const handleEdit = async (expense: ExpenseItem) => {
+    setSelectedExpense(expense);
+    // Load category items for the selected expense's category
+    if (expense.categoryId) {
+      try {
+        const items = await expenseCategoriesApi.getItems(expense.categoryId);
+        setEditExpenseItems(items);
+      } catch (error) {
+        console.error("Failed to load category items:", error);
+        setEditExpenseItems([]);
+      }
+    }
+    setIsEditExpenseOpen(true);
   };
 
   const handleDelete = (expense: ExpenseItem) => {
-    // TODO: Implement delete functionality
-    toast({
-      title: "Delete",
-      description: `Delete expense ${expense.id}`,
-    });
+    setSelectedExpense(expense);
+    setIsDeleteExpenseOpen(true);
+  };
+
+  const handleUpdateExpense = async (id: number, payload: any) => {
+    try {
+      await updateTransaction(id, payload);
+      loadTransactions();
+      setIsEditExpenseOpen(false);
+      setSelectedExpense(null);
+      toast({
+        title: "Success",
+        description: "Expense updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update expense",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedExpense) return;
+    try {
+      await deleteTransaction(selectedExpense.id);
+      loadTransactions();
+      setIsDeleteExpenseOpen(false);
+      setSelectedExpense(null);
+      toast({
+        title: "Success",
+        description: "Expense deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete expense",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -224,6 +277,24 @@ const Expenses = () => {
         open={isAddExpenseOpen}
         onOpenChange={setIsAddExpenseOpen}
         onExpenseAdded={() => loadTransactions()}
+      />
+
+      {/* Edit Expense Dialog */}
+      <EditExpenseDialog
+        open={isEditExpenseOpen}
+        onOpenChange={setIsEditExpenseOpen}
+        row={selectedExpense}
+        accounts={accounts}
+        categories={categories.map(c => ({ id: c.id, name: c.name, icon: '', color: '', budgetAmount: 0 }))}
+        categoryItems={editExpenseItems}
+        onUpdate={handleUpdateExpense}
+      />
+
+      {/* Delete Expense Dialog */}
+      <DeleteExpenseDialog
+        open={isDeleteExpenseOpen}
+        onOpenChange={setIsDeleteExpenseOpen}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
