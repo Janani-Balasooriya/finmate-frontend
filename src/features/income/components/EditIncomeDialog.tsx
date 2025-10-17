@@ -29,7 +29,7 @@ export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSour
 
   useEffect(() => {
     if (!row) return;
-    setAmount(row.amount.replace("Rs. ", ""));
+    setAmount(row.amountDisplay ? String(row.amountDisplay).replace("Rs. ", "") : "");
     setSource(String(row.sourceId));
     setAccount(String(row.accountId));
     setDate(row.dateIso);
@@ -46,6 +46,8 @@ export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSour
     await onUpdate(row.id, payload);
     onOpenChange(false);
   };
+
+  if (!row) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
