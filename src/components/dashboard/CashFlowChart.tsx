@@ -1,15 +1,10 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
-
-const data = [
-  { month: "Jan", cashFlow: 63000, cumulative: 63000 },
-  { month: "Feb", cashFlow: 63500, cumulative: 126500 },
-  { month: "Mar", cashFlow: 71000, cumulative: 197500 },
-  { month: "Apr", cashFlow: 61000, cumulative: 258500 },
-  { month: "May", cashFlow: 65500, cumulative: 324000 },
-  { month: "Jun", cashFlow: 67000, cumulative: 391000 },
-];
+import { dashboardApi } from "@/lib/dashboard";
+import { useToast } from "@/hooks/use-toast";
+import type { CashFlowAnalysis } from "@/lib/dashboard";
 
 const chartConfig = {
   cashFlow: {
@@ -23,6 +18,45 @@ const chartConfig = {
 };
 
 export function CashFlowChart() {
+  const { toast } = useToast();
+  const [cashFlowData, setCashFlowData] = useState<CashFlowAnalysis | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCashFlowData = async () => {
+      try {
+        const currentYear = new Date().getFullYear();
+        const data = await dashboardApi.getCashFlowAnalysis(currentYear);
+        setCashFlowData(data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load cash flow analysis data",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCashFlowData();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Cash Flow Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] flex items-center justify-center">
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -31,29 +65,29 @@ export function CashFlowChart() {
       <CardContent>
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data}>
+            <AreaChart data={cashFlowData?.data || []}>
               <defs>
                 <linearGradient id="cashFlowGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <XAxis 
+              <XAxis
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
-                tickFormatter={(value) => `₹${value / 1000}k`}
+                tickFormatter={(value) => `Rs.${value / 1000}k`}
               />
-              <ChartTooltip 
+              <ChartTooltip
                 content={<ChartTooltipContent />}
                 formatter={(value, name) => [
-                  `₹${value.toLocaleString()}`, 
+                  `Rs.${value.toLocaleString()}`,
                   name === "cashFlow" ? "Monthly Cash Flow" : "Cumulative Savings"
                 ]}
               />

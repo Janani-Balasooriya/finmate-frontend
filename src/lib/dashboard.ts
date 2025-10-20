@@ -24,6 +24,16 @@ export interface BudgetComparison {
   data: BudgetComparisonData[];
 }
 
+export interface CashFlowData {
+  month: string;
+  cashFlow: number;
+  cumulative: number;
+}
+
+export interface CashFlowAnalysis {
+  data: CashFlowData[];
+}
+
 export interface IncomeExpenseTrend {
   data: MonthlyTrendData[];
 }
@@ -40,5 +50,10 @@ export const dashboardApi = {
 
   async getBudgetComparison(): Promise<BudgetComparison> {
     return httpClient.get("/dashboard/budget-comparison");
+  },
+
+  async getCashFlowAnalysis(year?: number): Promise<CashFlowAnalysis> {
+    const yearParam = year ? `?year=${year}` : "";
+    return httpClient.get(`/dashboard/cash-flow-analysis${yearParam}`);
   },
 };
