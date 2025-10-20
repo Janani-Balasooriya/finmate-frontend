@@ -28,7 +28,8 @@ export function ExpenseTable({ rows, onEdit, onDelete }: Props) {
           <TableRow key={row.id}>
             <TableCell className="font-medium">{row.date}</TableCell>
             <TableCell>
-              <Badge style={{ backgroundColor: row.categoryColor }}>
+              <Badge 
+                className={`${row.categoryColor} text-white`}>
                 {row.category}
               </Badge>
             </TableCell>
