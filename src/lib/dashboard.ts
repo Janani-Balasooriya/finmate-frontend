@@ -34,6 +34,14 @@ export interface CashFlowAnalysis {
   data: CashFlowData[];
 }
 
+export interface CategoryTrends {
+  data: {
+    month: string;
+    categories: Record<string, number>;
+  }[];
+  categoryNames: string[];
+}
+
 export interface IncomeExpenseTrend {
   data: MonthlyTrendData[];
 }
@@ -55,5 +63,10 @@ export const dashboardApi = {
   async getCashFlowAnalysis(year?: number): Promise<CashFlowAnalysis> {
     const yearParam = year ? `?year=${year}` : "";
     return httpClient.get(`/dashboard/cash-flow-analysis${yearParam}`);
+  },
+
+  async getCategoryTrends(year?: number): Promise<CategoryTrends> {
+    const yearParam = year ? `?year=${year}` : "";
+    return httpClient.get(`/dashboard/category-trends${yearParam}`);
   },
 };

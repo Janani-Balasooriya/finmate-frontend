@@ -1,36 +1,75 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { dashboardApi } from "@/lib/dashboard";
+import { useToast } from "@/hooks/use-toast";
+import type { CategoryTrends } from "@/lib/dashboard";
 
-const data = [
-  { month: "Jan", food: 7200, transport: 3800, entertainment: 2800, shopping: 4200 },
-  { month: "Feb", food: 7500, transport: 3600, entertainment: 3200, shopping: 3800 },
-  { month: "Mar", food: 6800, transport: 4000, entertainment: 2900, shopping: 4500 },
-  { month: "Apr", food: 7800, transport: 3900, entertainment: 4200, shopping: 4000 },
-  { month: "May", food: 7200, transport: 3800, entertainment: 3500, shopping: 4200 },
-  { month: "Jun", food: 7600, transport: 4100, entertainment: 3800, shopping: 3900 },
-];
-
-const chartConfig = {
-  food: {
-    label: "Food",
-    color: "hsl(var(--success))",
-  },
-  transport: {
-    label: "Transport",
-    color: "hsl(var(--info))",
-  },
-  entertainment: {
-    label: "Entertainment",
-    color: "hsl(var(--warning))",
-  },
-  shopping: {
-    label: "Shopping",
-    color: "hsl(var(--destructive))",
-  },
+const generateColor = (index: number) => {
+  const colors = [
+    "hsl(var(--success))",
+    "hsl(var(--info))",
+    "hsl(var(--warning))",
+    "hsl(var(--destructive))",
+    "hsl(var(--primary))",
+    "#8B5CF6", // purple
+    "#06B6D4", // cyan
+    "#10B981", // emerald
+    "#F59E0B", // amber
+    "#EF4444", // red
+  ];
+  return colors[index % colors.length];
 };
 
 export function CategoryTrendsChart() {
+  const { toast } = useToast();
+  const [categoryData, setCategoryData] = useState<CategoryTrends | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategoryData = async () => {
+      try {
+        const currentYear = new Date().getFullYear();
+        const data = await dashboardApi.getCategoryTrends(currentYear);
+        setCategoryData(data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load category trends data",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategoryData();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Category Spending Trends</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] flex items-center justify-center">
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const chartConfig = categoryData?.categoryNames.reduce((config, categoryName, index) => {
+    config[categoryName.toLowerCase().replace(/\s+/g, '')] = {
+      label: categoryName,
+      color: generateColor(index),
+    };
+    return config;
+  }, {} as Record<string, { label: string; color: string }>) || {};
+
   return (
     <Card>
       <CardHeader>
@@ -39,63 +78,48 @@ export function CategoryTrendsChart() {
       <CardContent>
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data}>
-              <XAxis 
+            <LineChart data={categoryData?.data || []}>
+              <XAxis
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
-                tickFormatter={(value) => `₹${value / 1000}k`}
+                tickFormatter={(value) => `Rs.${value / 1000}k`}
               />
-              <ChartTooltip 
+              <ChartTooltip
                 content={<ChartTooltipContent />}
-                formatter={(value) => [`₹${value.toLocaleString()}`, ""]}
+                formatter={(value) => [`Rs.${value.toLocaleString()}`, ""]}
               />
-              <Line 
-                type="monotone" 
-                dataKey="food" 
-                stroke="var(--color-food)"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="transport" 
-                stroke="var(--color-transport)"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="entertainment" 
-                stroke="var(--color-entertainment)"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="shopping" 
-                stroke="var(--color-shopping)"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-              />
+              {categoryData?.categoryNames.map((categoryName, index) => {
+                const dataKey = categoryName.toLowerCase().replace(/\s+/g, '');
+                return (
+                  <Line
+                    key={categoryName}
+                    type="monotone"
+                    dataKey={`categories.${categoryName}`}
+                    stroke={generateColor(index)}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                );
+              })}
             </LineChart>
           </ResponsiveContainer>
         </ChartContainer>
-        
+
         <div className="flex flex-wrap gap-4 mt-4 justify-center">
-          {Object.entries(chartConfig).map(([key, config]) => (
-            <div key={key} className="flex items-center gap-2">
-              <div 
+          {categoryData?.categoryNames.map((categoryName, index) => (
+            <div key={categoryName} className="flex items-center gap-2">
+              <div
                 className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: config.color }}
+                style={{ backgroundColor: generateColor(index) }}
               />
-              <span className="text-sm text-muted-foreground">{config.label}</span>
+              <span className="text-sm text-muted-foreground">{categoryName}</span>
             </div>
           ))}
         </div>
