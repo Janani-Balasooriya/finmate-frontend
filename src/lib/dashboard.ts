@@ -42,6 +42,14 @@ export interface CategoryTrends {
   categoryNames: string[];
 }
 
+export interface SpendingByCategory {
+  data: {
+    categoryName: string;
+    amount: number;
+    percentage: number;
+  }[];
+}
+
 export interface IncomeExpenseTrend {
   data: MonthlyTrendData[];
 }
@@ -68,5 +76,9 @@ export const dashboardApi = {
   async getCategoryTrends(year?: number): Promise<CategoryTrends> {
     const yearParam = year ? `?year=${year}` : "";
     return httpClient.get(`/dashboard/category-trends${yearParam}`);
+  },
+
+  async getSpendingByCategory(): Promise<SpendingByCategory> {
+    return httpClient.get("/dashboard/spending-by-category");
   },
 };
