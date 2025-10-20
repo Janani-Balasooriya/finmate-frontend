@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { SpendingChart } from "@/components/dashboard/SpendingChart";
 import { KeyInsights } from "@/components/dashboard/KeyInsights";
@@ -7,33 +8,62 @@ import { BudgetComparisonChart } from "@/components/dashboard/BudgetComparisonCh
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 
 import { CategoryTrendsChart } from "@/components/dashboard/CategoryTrendsChart";
+import { dashboardApi, DashboardStats } from "@/lib/dashboard";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
+  const { toast } = useToast();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await dashboardApi.getStats();
+        setStats(data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to load dashboard stats",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+  }, [toast]);
+
+  const formatCurrency = (amount: number) => {
+    return `Rs. ${amount.toLocaleString()}`;
+  };
+
   return (
     <div className="space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <StatsCard
               title="Total Income This Month"
-              amount="90,000"
-              currency="Rs."
+              amount={loading ? "..." : formatCurrency(stats?.totalIncomeThisMonth || 0)}
+              currency=""
               change="+12% from last month"
               trend="up"
               type="income"
             />
             <StatsCard
               title="Total Expenses This Month"
-              amount="24,500"
-              currency="Rs."
+              amount={loading ? "..." : formatCurrency(stats?.totalExpensesThisMonth || 0)}
+              currency=""
               change="+8% from last month"
               trend="up"
               type="expense"
             />
             <StatsCard
               title="Net Savings"
-              amount="65, 500"
-              currency="Rs."
-              change="17% savings rate"
+              amount={loading ? "..." : formatCurrency(stats?.netSavings || 0)}
+              currency=""
+              change={`${stats?.savingsRate?.toFixed(1) || 0}% savings rate`}
               trend="up"
               type="savings"
             />
