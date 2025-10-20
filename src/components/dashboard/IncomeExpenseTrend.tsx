@@ -1,15 +1,10 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
-
-const data = [
-  { month: "Jan", income: 85000, expenses: 22000 },
-  { month: "Feb", income: 88000, expenses: 24500 },
-  { month: "Mar", income: 92000, expenses: 21000 },
-  { month: "Apr", income: 87000, expenses: 26000 },
-  { month: "May", income: 90000, expenses: 24500 },
-  { month: "Jun", income: 95000, expenses: 28000 },
-];
+import { dashboardApi } from "@/lib/dashboard";
+import { useToast } from "@/hooks/use-toast";
+import type { IncomeExpenseTrend } from "@/lib/dashboard";
 
 const chartConfig = {
   income: {
@@ -17,12 +12,51 @@ const chartConfig = {
     color: "hsl(var(--success))",
   },
   expenses: {
-    label: "Expenses", 
+    label: "Expenses",
     color: "hsl(var(--destructive))",
   },
 };
 
 export function IncomeExpenseTrend() {
+  const { toast } = useToast();
+  const [trendData, setTrendData] = useState<IncomeExpenseTrend | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTrendData = async () => {
+      try {
+        const currentYear = new Date().getFullYear();
+        const data = await dashboardApi.getIncomeExpenseTrend(currentYear);
+        setTrendData(data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load income vs expenses trend",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTrendData();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Income vs Expenses Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] flex items-center justify-center">
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -31,34 +65,34 @@ export function IncomeExpenseTrend() {
       <CardContent>
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data}>
-              <XAxis 
+            <LineChart data={trendData?.data || []}>
+              <XAxis
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
-                tickFormatter={(value) => `₹${value / 1000}k`}
+                tickFormatter={(value) => `Rs.${value / 1000}k`}
               />
-              <ChartTooltip 
+              <ChartTooltip
                 content={<ChartTooltipContent />}
-                formatter={(value) => [`₹${value.toLocaleString()}`, ""]}
+                formatter={(value) => [`Rs.${value.toLocaleString()}`, ""]}
               />
-              <Line 
-                type="monotone" 
-                dataKey="income" 
+              <Line
+                type="monotone"
+                dataKey="income"
                 stroke="var(--color-income)"
                 strokeWidth={3}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="expenses" 
+              <Line
+                type="monotone"
+                dataKey="expenses"
                 stroke="var(--color-expenses)"
                 strokeWidth={3}
                 dot={{ r: 4 }}
