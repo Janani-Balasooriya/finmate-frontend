@@ -1,14 +1,10 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
-
-const data = [
-  { category: "Food", budget: 8000, actual: 7200, status: "under" },
-  { category: "Transport", budget: 4000, actual: 3800, status: "under" },
-  { category: "Entertainment", budget: 3000, actual: 4200, status: "over" },
-  { category: "Shopping", budget: 5000, actual: 4500, status: "under" },
-  { category: "Bills", budget: 6000, actual: 6000, status: "exact" },
-];
+import { dashboardApi } from "@/lib/dashboard";
+import { useToast } from "@/hooks/use-toast";
+import type { BudgetComparison } from "@/lib/dashboard";
 
 const chartConfig = {
   budget: {
@@ -22,6 +18,44 @@ const chartConfig = {
 };
 
 export function BudgetComparisonChart() {
+  const { toast } = useToast();
+  const [budgetData, setBudgetData] = useState<BudgetComparison | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadBudgetData = async () => {
+      try {
+        const data = await dashboardApi.getBudgetComparison();
+        setBudgetData(data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load budget comparison data",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBudgetData();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Budget vs Actual Spending</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] flex items-center justify-center">
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -30,31 +64,31 @@ export function BudgetComparisonChart() {
       <CardContent>
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data} barCategoryGap="20%">
-              <XAxis 
+            <BarChart data={budgetData?.data || []} barCategoryGap="20%">
+              <XAxis
                 dataKey="category"
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
-                tickFormatter={(value) => `₹${value / 1000}k`}
+                tickFormatter={(value) => `Rs.${value / 1000}k`}
               />
-              <ChartTooltip 
+              <ChartTooltip
                 content={<ChartTooltipContent />}
-                formatter={(value) => [`₹${value.toLocaleString()}`, ""]}
+                formatter={(value) => [`Rs.${value.toLocaleString()}`, ""]}
               />
-              <Bar 
-                dataKey="budget" 
+              <Bar
+                dataKey="budget"
                 fill="var(--color-budget)"
                 radius={[2, 2, 0, 0]}
                 opacity={0.7}
               />
-              <Bar 
-                dataKey="actual" 
+              <Bar
+                dataKey="actual"
                 fill="var(--color-actual)"
                 radius={[2, 2, 0, 0]}
               />
