@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,69 +7,89 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash2, Calendar, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAccounts } from "@/features/income/hooks/useAccounts";
+import { useExpenseCategories } from "@/features/expenses/hooks/useExpenseCategories";
 interface Subscription {
   id: string;
   name: string;
   amount: number;
+  currency: string;
+  billingCycle: string;
+  account: string;
   category: string;
   nextBilling: string;
-  description?: string;
   isActive: boolean;
 }
 const initialSubscriptions: Subscription[] = [{
   id: "1",
   name: "Netflix",
   amount: 15.99,
+  currency: "USD",
+  billingCycle: "monthly",
+  account: "Main Account",
   category: "Entertainment",
   nextBilling: "2024-09-15",
-  description: "Streaming service",
   isActive: true
 }, {
   id: "2",
   name: "Spotify Premium",
   amount: 9.99,
+  currency: "USD",
+  billingCycle: "monthly",
+  account: "Main Account",
   category: "Entertainment",
   nextBilling: "2024-09-10",
-  description: "Music streaming",
   isActive: true
 }, {
   id: "3",
   name: "Adobe Creative Cloud",
   amount: 52.99,
+  currency: "USD",
+  billingCycle: "monthly",
+  account: "Main Account",
   category: "Software",
   nextBilling: "2024-09-20",
-  description: "Design software suite",
   isActive: true
 }];
 export default function Subscriptions() {
+  const { accounts, currencyCodes } = useAccounts();
+  const { categories, loadCategories } = useExpenseCategories();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(initialSubscriptions);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     amount: "",
+    currency: "USD",
+    billingCycle: "monthly",
+    account: "",
     category: "",
-    nextBilling: "",
-    description: ""
+    nextBilling: ""
   });
   const {
     toast
   } = useToast();
   const totalMonthly = subscriptions.filter(sub => sub.isActive).reduce((total, sub) => total + sub.amount, 0);
+
+  // Load categories on component mount
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
   const resetForm = () => {
     setFormData({
       name: "",
       amount: "",
+      currency: "USD",
+      billingCycle: "monthly",
+      account: "",
       category: "",
-      nextBilling: "",
-      description: ""
+      nextBilling: ""
     });
   };
   const handleAdd = () => {
-    if (!formData.name || !formData.amount || !formData.category || !formData.nextBilling) {
+    if (!formData.name || !formData.amount || !formData.currency || !formData.billingCycle || !formData.account || !formData.category || !formData.nextBilling) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -81,9 +101,11 @@ export default function Subscriptions() {
       id: Date.now().toString(),
       name: formData.name,
       amount: parseFloat(formData.amount),
+      currency: formData.currency,
+      billingCycle: formData.billingCycle,
+      account: formData.account,
       category: formData.category,
       nextBilling: formData.nextBilling,
-      description: formData.description,
       isActive: true
     };
     setSubscriptions([...subscriptions, newSubscription]);
@@ -95,7 +117,7 @@ export default function Subscriptions() {
     });
   };
   const handleEdit = () => {
-    if (!editingSubscription || !formData.name || !formData.amount || !formData.category || !formData.nextBilling) {
+    if (!editingSubscription || !formData.name || !formData.amount || !formData.currency || !formData.billingCycle || !formData.account || !formData.category || !formData.nextBilling) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -107,9 +129,11 @@ export default function Subscriptions() {
       ...sub,
       name: formData.name,
       amount: parseFloat(formData.amount),
+      currency: formData.currency,
+      billingCycle: formData.billingCycle,
+      account: formData.account,
       category: formData.category,
-      nextBilling: formData.nextBilling,
-      description: formData.description
+      nextBilling: formData.nextBilling
     } : sub);
     setSubscriptions(updatedSubscriptions);
     setEditingSubscription(null);
@@ -131,9 +155,11 @@ export default function Subscriptions() {
     setFormData({
       name: subscription.name,
       amount: subscription.amount.toString(),
+      currency: subscription.currency,
+      billingCycle: subscription.billingCycle,
+      account: subscription.account,
       category: subscription.category,
-      nextBilling: subscription.nextBilling,
-      description: subscription.description || ""
+      nextBilling: subscription.nextBilling
     });
   };
   const formatDate = (dateString: string) => {
@@ -189,12 +215,69 @@ export default function Subscriptions() {
                 name: e.target.value
               })} placeholder="e.g., Netflix" />
               </div>
-              <div>
-                <Label htmlFor="amount">Monthly Amount *</Label>
-                <Input id="amount" type="number" step="0.01" value={formData.amount} onChange={e => setFormData({
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="amount">Monthly Amount *</Label>
+                  <Input id="amount" type="number" step="0.01" value={formData.amount} onChange={e => setFormData({
+                  ...formData,
+                  amount: e.target.value
+                })} placeholder="15.99" />
+                </div>
+                <div>
+                  <Label htmlFor="currency">Currency *</Label>
+                  <Select value={formData.currency} onValueChange={value => setFormData({
+                  ...formData,
+                  currency: value
+                })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencyCodes.map(code => <SelectItem key={code.id} value={code.code}>{code.code}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                <Label htmlFor="billingCycle">Billing Cycle *</Label>
+                <Select value={formData.billingCycle} onValueChange={value => setFormData({
                 ...formData,
-                amount: e.target.value
-              })} placeholder="15.99" />
+                billingCycle: value
+              })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select billing cycle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="nextBilling">Next Billing Date *</Label>
+                <Input id="nextBilling" type="date" value={formData.nextBilling} onChange={e => setFormData({
+                ...formData,
+                nextBilling: e.target.value
+              })} />
+              </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="account">Account *</Label>
+                <Select value={formData.account} onValueChange={value => setFormData({
+                ...formData,
+                account: value
+              })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map(account => <SelectItem key={account.id} value={account.name}>{account.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="category">Category *</Label>
@@ -206,29 +289,11 @@ export default function Subscriptions() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Entertainment">Entertainment</SelectItem>
-                    <SelectItem value="Software">Software</SelectItem>
-                    <SelectItem value="Utilities">Utilities</SelectItem>
-                    <SelectItem value="Fitness">Fitness</SelectItem>
-                    <SelectItem value="Food">Food</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    {categories.map(category => <SelectItem key={category.id} value={category.name}>{category.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="nextBilling">Next Billing Date *</Label>
-                <Input id="nextBilling" type="date" value={formData.nextBilling} onChange={e => setFormData({
-                ...formData,
-                nextBilling: e.target.value
-              })} />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" value={formData.description} onChange={e => setFormData({
-                ...formData,
-                description: e.target.value
-              })} placeholder="Optional description" />
-              </div>
+              
               <Button onClick={handleAdd} className="w-full">
                 Add Subscription
               </Button>
@@ -248,16 +313,18 @@ export default function Subscriptions() {
                     <Badge variant="secondary" className="text-muted-foreground">{subscription.category}</Badge>
                     {subscription.isActive && <Badge variant="default">Active</Badge>}
                   </div>
-                  {subscription.description && <p className="text-sm text-muted-foreground mb-2">{subscription.description}</p>}
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <DollarSign className="h-4 w-4" />
-                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">${subscription.amount.toFixed(2)}/month</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">{subscription.currency} {subscription.amount.toFixed(2)}/{subscription.billingCycle}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       Next billing: {formatDate(subscription.nextBilling)}
                     </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Account: {subscription.account}
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
@@ -308,12 +375,59 @@ export default function Subscriptions() {
               name: e.target.value
             })} placeholder="e.g., Netflix" />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-amount">Monthly Amount *</Label>
+                <Input id="edit-amount" type="number" step="0.01" value={formData.amount} onChange={e => setFormData({
+                ...formData,
+                amount: e.target.value
+              })} placeholder="15.99" />
+              </div>
+              <div>
+                <Label htmlFor="edit-currency">Currency *</Label>
+                <Select value={formData.currency} onValueChange={value => setFormData({
+                ...formData,
+                currency: value
+              })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencyCodes.map(code => <SelectItem key={code.id} value={code.code}>{code.code}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div>
-              <Label htmlFor="edit-amount">Monthly Amount *</Label>
-              <Input id="edit-amount" type="number" step="0.01" value={formData.amount} onChange={e => setFormData({
+              <Label htmlFor="edit-billingCycle">Billing Cycle *</Label>
+              <Select value={formData.billingCycle} onValueChange={value => setFormData({
               ...formData,
-              amount: e.target.value
-            })} placeholder="15.99" />
+              billingCycle: value
+            })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select billing cycle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-account">Account *</Label>
+              <Select value={formData.account} onValueChange={value => setFormData({
+              ...formData,
+              account: value
+            })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map(account => <SelectItem key={account.id} value={account.name}>{account.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="edit-category">Category *</Label>
@@ -325,12 +439,7 @@ export default function Subscriptions() {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Entertainment">Entertainment</SelectItem>
-                  <SelectItem value="Software">Software</SelectItem>
-                  <SelectItem value="Utilities">Utilities</SelectItem>
-                  <SelectItem value="Fitness">Fitness</SelectItem>
-                  <SelectItem value="Food">Food</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  {categories.map(category => <SelectItem key={category.id} value={category.name}>{category.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -340,13 +449,6 @@ export default function Subscriptions() {
               ...formData,
               nextBilling: e.target.value
             })} />
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea id="edit-description" value={formData.description} onChange={e => setFormData({
-              ...formData,
-              description: e.target.value
-            })} placeholder="Optional description" />
             </div>
             <Button onClick={handleEdit} className="w-full">
               Update Subscription
