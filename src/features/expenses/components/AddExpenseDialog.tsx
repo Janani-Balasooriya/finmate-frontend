@@ -80,7 +80,7 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
   // Auto-populate fields when category item changes in subscription mode
   React.useEffect(() => {
     if (isSubscriptionMode && formData.categoryItemId) {
-      const subscription = subscriptions.find(sub => sub.categoryItemId.toString() === formData.categoryItemId);
+      const subscription = subscriptions.find(sub => sub.id.toString() === formData.categoryItemId);
       if (subscription) {
         setFormData(prev => ({
           ...prev,
