@@ -11,6 +11,7 @@ import { Plus, Edit, Trash2, Calendar, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAccounts } from "@/features/income/hooks/useAccounts";
 import { useExpenseCategories } from "@/features/expenses/hooks/useExpenseCategories";
+import { useSubscriptions } from "@/features/subscriptions/hooks/useSubscriptions";
 interface Subscription {
   id: string;
   name: string;
@@ -56,9 +57,9 @@ const initialSubscriptions: Subscription[] = [{
 export default function Subscriptions() {
   const { accounts, currencyCodes } = useAccounts();
   const { categories, loadCategories } = useExpenseCategories();
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(initialSubscriptions);
+  const { subscriptions, createSubscription, updateSubscription, deleteSubscription } = useSubscriptions();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
+  const [editingSubscription, setEditingSubscription] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "",
     amount: "",
@@ -88,8 +89,8 @@ export default function Subscriptions() {
       nextBilling: ""
     });
   };
-  const handleAdd = () => {
-    if (!formData.name || !formData.amount || !formData.currency || !formData.billingCycle || !formData.account || !formData.category || !formData.nextBilling) {
+  const handleAdd = async () => {
+    if (!formData.name || !formData.amount || !formData.billingCycle || !formData.account || !formData.category || !formData.nextBilling) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -97,27 +98,48 @@ export default function Subscriptions() {
       });
       return;
     }
-    const newSubscription: Subscription = {
-      id: Date.now().toString(),
-      name: formData.name,
-      amount: parseFloat(formData.amount),
-      currency: formData.currency,
-      billingCycle: formData.billingCycle,
-      account: formData.account,
-      category: formData.category,
-      nextBilling: formData.nextBilling,
-      isActive: true
-    };
-    setSubscriptions([...subscriptions, newSubscription]);
-    setIsAddDialogOpen(false);
-    resetForm();
-    toast({
-      title: "Success",
-      description: "Subscription added successfully"
-    });
+
+    try {
+      // Find category ID
+      const categoryId = categories.find(cat => cat.name === formData.category)?.id;
+      if (!categoryId) {
+        toast({
+          title: "Error",
+          description: "Selected category not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Find account ID
+      const account = accounts.find(acc => acc.name === formData.account);
+      if (!account) {
+        toast({
+          title: "Error",
+          description: "Selected account not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create subscription (backend handles category item creation and validation)
+      await createSubscription({
+        serviceName: formData.name,
+        categoryId: categoryId,
+        accountId: account.id,
+        amount: parseFloat(formData.amount),
+        billingCycle: formData.billingCycle.toUpperCase(),
+        nextBilling: formData.nextBilling
+      });
+
+      setIsAddDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      // Error handling is done in the hook
+    }
   };
-  const handleEdit = () => {
-    if (!editingSubscription || !formData.name || !formData.amount || !formData.currency || !formData.billingCycle || !formData.account || !formData.category || !formData.nextBilling) {
+  const handleEdit = async () => {
+    if (!editingSubscription || !formData.name || !formData.amount || !formData.billingCycle || !formData.account || !formData.category || !formData.nextBilling) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -125,40 +147,62 @@ export default function Subscriptions() {
       });
       return;
     }
-    const updatedSubscriptions = subscriptions.map(sub => sub.id === editingSubscription.id ? {
-      ...sub,
-      name: formData.name,
-      amount: parseFloat(formData.amount),
-      currency: formData.currency,
-      billingCycle: formData.billingCycle,
-      account: formData.account,
-      category: formData.category,
-      nextBilling: formData.nextBilling
-    } : sub);
-    setSubscriptions(updatedSubscriptions);
-    setEditingSubscription(null);
-    resetForm();
-    toast({
-      title: "Success",
-      description: "Subscription updated successfully"
-    });
+
+    try {
+      // Find account ID
+      const account = accounts.find(acc => acc.name === formData.account);
+      if (!account) {
+        toast({
+          title: "Error",
+          description: "Selected account not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Find category ID
+      const category = categories.find(cat => cat.name === formData.category);
+      if (!category) {
+        toast({
+          title: "Error",
+          description: "Selected category not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      await updateSubscription(editingSubscription.id, {
+        name: formData.name,
+        amount: parseFloat(formData.amount),
+        billingCycle: formData.billingCycle.toUpperCase(),
+        accountId: account.id,
+        categoryId: category.id,
+        nextBilling: formData.nextBilling,
+        isActive: editingSubscription.isActive
+      });
+
+      setEditingSubscription(null);
+      resetForm();
+    } catch (error) {
+      // Error handling is done in the hook
+    }
   };
-  const handleDelete = (id: string) => {
-    setSubscriptions(subscriptions.filter(sub => sub.id !== id));
-    toast({
-      title: "Success",
-      description: "Subscription deleted successfully"
-    });
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteSubscription(id);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
   };
-  const openEditDialog = (subscription: Subscription) => {
+  const openEditDialog = (subscription: { id: number; name: string; amount: number; currency: string; billingCycle: string; accountName: string; categoryName: string; nextBilling: string; isActive: boolean }) => {
     setEditingSubscription(subscription);
     setFormData({
       name: subscription.name,
       amount: subscription.amount.toString(),
       currency: subscription.currency,
       billingCycle: subscription.billingCycle,
-      account: subscription.account,
-      category: subscription.category,
+      account: subscription.accountName,
+      category: subscription.categoryName,
       nextBilling: subscription.nextBilling
     });
   };
@@ -310,7 +354,7 @@ export default function Subscriptions() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-lg font-semibold">{subscription.name}</h3>
-                    <Badge variant="secondary" className="text-muted-foreground">{subscription.category}</Badge>
+                    <Badge variant="secondary" className="text-muted-foreground">{subscription.categoryName}</Badge>
                     {subscription.isActive && <Badge variant="default">Active</Badge>}
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -324,7 +368,7 @@ export default function Subscriptions() {
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Account: {subscription.account}
+                    Account: {subscription.accountName}
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
