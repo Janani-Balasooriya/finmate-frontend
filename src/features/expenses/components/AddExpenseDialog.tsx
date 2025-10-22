@@ -4,12 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Plus, Check, ChevronsUpDown } from "lucide-react";
 import { useExpenseCategories } from "../hooks/useExpenseCategories";
 import { useExpenseTransactions } from "../hooks/useExpenseTransactions";
+import { useSubscriptions } from "@/features/subscriptions/hooks/useSubscriptions";
 import { accountsApi, AccountItemDto, CurrencyCodeDto } from "@/lib/accounts";
 import { categoriesApi } from "@/lib/categories";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface AddExpenseDialogProps {
   open: boolean;
@@ -17,25 +22,27 @@ interface AddExpenseDialogProps {
 }
 
 export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpenseDialogProps & { onExpenseAdded?: () => void }) {
-  const { toast } = useToast();
-  const { categories, items, loadCategories, loadItems } = useExpenseCategories();
-  const { createTransaction } = useExpenseTransactions();
+   const { toast } = useToast();
+   const { categories, items, loadCategories, loadItems } = useExpenseCategories();
+   const { createTransaction } = useExpenseTransactions();
+   const { subscriptions } = useSubscriptions();
 
-  const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
-  const [currencyCodes, setCurrencyCodes] = useState<CurrencyCodeDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
-  const [isAddCategoryItemOpen, setIsAddCategoryItemOpen] = useState(false);
-  const [newAccountForm, setNewAccountForm] = useState({ name: "", currencyCodesId: 0, openingBalance: 0 });
-  const [newItemForm, setNewItemForm] = useState({ name: "" });
+   const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
+   const [currencyCodes, setCurrencyCodes] = useState<CurrencyCodeDto[]>([]);
+   const [loading, setLoading] = useState(false);
+   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
+   const [isAddCategoryItemOpen, setIsAddCategoryItemOpen] = useState(false);
+   const [newAccountForm, setNewAccountForm] = useState({ name: "", currencyCodesId: 0, openingBalance: 0 });
+   const [newItemForm, setNewItemForm] = useState({ name: "" });
+   const [isSubscriptionMode, setIsSubscriptionMode] = useState(false);
 
-  const [formData, setFormData] = useState({
-    amount: "",
-    categoryId: "",
-    categoryItemId: "",
-    accountId: "",
-    transactionDate: new Date().toISOString().split('T')[0],
-  });
+   const [formData, setFormData] = useState({
+     amount: "",
+     categoryId: "",
+     categoryItemId: "",
+     accountId: "",
+     transactionDate: new Date().toISOString().split('T')[0],
+   });
 
   // Load accounts, currency codes and categories when dialog opens
   React.useEffect(() => {
@@ -52,12 +59,38 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
   }, [open, loadCategories]);
 
   // Load category items when category changes
+   React.useEffect(() => {
+     if (formData.categoryId) {
+       loadItems(parseInt(formData.categoryId));
+       setFormData(prev => ({ ...prev, categoryItemId: "" }));
+     }
+   }, [formData.categoryId, loadItems]);
+
+  // Clear form data when switching modes
   React.useEffect(() => {
-    if (formData.categoryId) {
-      loadItems(parseInt(formData.categoryId));
-      setFormData(prev => ({ ...prev, categoryItemId: "" }));
+    setFormData({
+      amount: "",
+      categoryId: "",
+      categoryItemId: "",
+      accountId: "",
+      transactionDate: new Date().toISOString().split('T')[0],
+    });
+  }, [isSubscriptionMode]);
+
+  // Auto-populate fields when category item changes in subscription mode
+  React.useEffect(() => {
+    if (isSubscriptionMode && formData.categoryItemId) {
+      const subscription = subscriptions.find(sub => sub.categoryItemId.toString() === formData.categoryItemId);
+      if (subscription) {
+        setFormData(prev => ({
+          ...prev,
+          amount: subscription.amount.toString(),
+          categoryId: subscription.categoryId.toString(),
+          accountId: subscription.accountId.toString(),
+        }));
+      }
     }
-  }, [formData.categoryId, loadItems]);
+  }, [formData.categoryItemId, isSubscriptionMode, subscriptions]);
 
   const handleSubmit = async () => {
     if (!formData.amount || !formData.categoryItemId || !formData.accountId) {
@@ -79,15 +112,16 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
       });
 
       // Reset form
-      setFormData({
-        amount: "",
-        categoryId: "",
-        categoryItemId: "",
-        accountId: "",
-        transactionDate: new Date().toISOString().split('T')[0],
-      });
+       setFormData({
+         amount: "",
+         categoryId: "",
+         categoryItemId: "",
+         accountId: "",
+         transactionDate: new Date().toISOString().split('T')[0],
+       });
+       setIsSubscriptionMode(false);
 
-      onOpenChange(false);
+       onOpenChange(false);
       onExpenseAdded?.();
     } catch (error) {
       // Error is handled in the hook
@@ -104,14 +138,23 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
       accountId: "",
       transactionDate: new Date().toISOString().split('T')[0],
     });
+    setIsSubscriptionMode(false);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>Add Expense</DialogTitle>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="subscription-mode" className="text-sm">Subscription</Label>
+            <Switch
+              id="subscription-mode"
+              checked={isSubscriptionMode}
+              onCheckedChange={setIsSubscriptionMode}
+            />
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -125,6 +168,8 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
                 placeholder="0.00"
                 value={formData.amount}
                 onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                disabled={isSubscriptionMode}
+                className={cn(isSubscriptionMode && "bg-muted opacity-50")}
               />
             </div>
 
@@ -134,8 +179,9 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
                 <Select
                   value={formData.accountId}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, accountId: value }))}
+                  disabled={isSubscriptionMode}
                 >
-                  <SelectTrigger className="flex-1">
+                  <SelectTrigger className={cn("flex-1", isSubscriptionMode && "bg-muted opacity-50")}>
                     <SelectValue placeholder="Select account" />
                   </SelectTrigger>
                   <SelectContent>
@@ -152,6 +198,7 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
                   size="icon"
                   onClick={() => setIsAddAccountOpen(true)}
                   className="shrink-0"
+                  disabled={isSubscriptionMode}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -165,8 +212,9 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
               <Select
                 value={formData.categoryId}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
+                disabled={isSubscriptionMode}
               >
-                <SelectTrigger>
+                <SelectTrigger className={cn(isSubscriptionMode && "bg-muted opacity-50")}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -182,28 +230,61 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
             <div className="space-y-2">
               <Label htmlFor="categoryItem">Category Item *</Label>
               <div className="flex gap-2">
-                <Select
-                  value={formData.categoryItemId}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, categoryItemId: value }))}
-                  disabled={!formData.categoryId}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select item" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {items.map(item => (
-                      <SelectItem key={item.id} value={item.id.toString()}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "flex-1 justify-between",
+                        !formData.categoryItemId && "text-muted-foreground"
+                      )}
+                      disabled={!formData.categoryId && !isSubscriptionMode}
+                    >
+                      {formData.categoryItemId
+                        ? (isSubscriptionMode
+                            ? subscriptions.find(sub => sub.id.toString() === formData.categoryItemId)?.name
+                            : items.find(item => item.id.toString() === formData.categoryItemId)?.name
+                          )
+                        : (isSubscriptionMode ? "Select subscription..." : "Select item...")
+                      }
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0">
+                    <Command>
+                      <CommandInput placeholder={isSubscriptionMode ? "Search subscriptions..." : "Search items..."} />
+                      <CommandList>
+                        <CommandEmpty>No {isSubscriptionMode ? "subscriptions" : "items"} found.</CommandEmpty>
+                        <CommandGroup>
+                          {(isSubscriptionMode ? subscriptions : items).map((item) => (
+                            <CommandItem
+                              key={item.id}
+                              value={item.name}
+                              onSelect={() => {
+                                setFormData(prev => ({ ...prev, categoryItemId: item.id.toString() }));
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.categoryItemId === item.id.toString() ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
                   onClick={() => setIsAddCategoryItemOpen(true)}
-                  disabled={!formData.categoryId}
+                  disabled={!formData.categoryId || isSubscriptionMode}
                   className="shrink-0"
                 >
                   <Plus className="h-4 w-4" />
