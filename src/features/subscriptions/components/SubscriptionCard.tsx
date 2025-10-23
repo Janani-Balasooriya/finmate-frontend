@@ -5,10 +5,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Calendar, DollarSign, Edit, Trash2 } from "lucide-react";
 import { formatDate } from "../utils/format";
 import type { Subscription } from "../types";
+import type { SubscriptionItem } from "@/lib/subscriptions";
 
 type Props = {
-  subscription: Subscription & { currency: string; amount: number };
-  onEdit: (sub: any) => void;
+  subscription: SubscriptionItem;
+  onEdit: (sub: SubscriptionItem) => void;
   onDelete: (id: number | string) => void;
 };
 
@@ -20,10 +21,13 @@ export default function SubscriptionCard({ subscription, onEdit, onDelete }: Pro
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h3 className="text-lg font-semibold">{subscription.name}</h3>
-              <Badge variant="secondary" className="text-muted-foreground">
+
+              <Badge
+                className={`${subscription.categoryColor}`}
+              >
                 {subscription.categoryName}
               </Badge>
-              {subscription.isActive && <Badge variant="default">Active</Badge>}
+              {/* {subscription.isActive && <Badge variant="default">Active</Badge>} */}
             </div>
 
             <div className="flex items-center gap-4 text-sm text-muted-foreground">

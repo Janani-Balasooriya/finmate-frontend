@@ -10,6 +10,7 @@ export interface SubscriptionItem {
   accountName: string;
   categoryId: number;
   categoryName: string;
+  categoryColor?: string;
   categoryItemId: number;
   categoryItemName: string;
   nextBilling: string;
