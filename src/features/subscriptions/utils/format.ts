@@ -1,6 +1,6 @@
-export const formatDate = (dateString: string) => {
-  if (!dateString) return "";
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return dateString;
+export const formatDate = (date: string | Date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return String(date);
   return d.toLocaleDateString();
 };

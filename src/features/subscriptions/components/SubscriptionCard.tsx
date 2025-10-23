@@ -6,6 +6,7 @@ import { Calendar, DollarSign, Edit, Trash2 } from "lucide-react";
 import { formatDate } from "../utils/format";
 import type { Subscription } from "../types";
 import type { SubscriptionItem } from "@/lib/subscriptions";
+import { useMemo } from "react";
 
 type Props = {
   subscription: SubscriptionItem;
@@ -14,6 +15,35 @@ type Props = {
 };
 
 export default function SubscriptionCard({ subscription, onEdit, onDelete }: Props) {
+  const nextBillingDate = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+    const nextDate = new Date(subscription.nextBilling);
+
+    // Keep advancing the date until it's after today
+    while (nextDate <= today) {
+      switch (subscription.billingCycle) {
+        case 'weekly':
+          nextDate.setDate(nextDate.getDate() + 7);
+          break;
+        case 'monthly':
+          nextDate.setMonth(nextDate.getMonth() + 1);
+          break;
+        case 'quarterly':
+          nextDate.setMonth(nextDate.getMonth() + 3);
+          break;
+        case 'yearly':
+          nextDate.setFullYear(nextDate.getFullYear() + 1);
+          break;
+        default:
+          break;
+      }
+    }
+
+    return nextDate;
+  }, [subscription.nextBilling, subscription.billingCycle]);
+
   return (
     <Card className="rounded-xl border border-border/70 bg-card shadow-sm hover:shadow transition-shadow">
       <CardContent className="p-6">
@@ -39,7 +69,7 @@ export default function SubscriptionCard({ subscription, onEdit, onDelete }: Pro
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                Next billing: {formatDate(subscription.nextBilling)}
+                Next billing: {formatDate(nextBillingDate)}
               </div>
             </div>
 
