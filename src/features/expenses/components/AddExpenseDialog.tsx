@@ -13,6 +13,7 @@ import { useExpenseTransactions } from "../hooks/useExpenseTransactions";
 import { useSubscriptions } from "@/features/subscriptions/hooks/useSubscriptions";
 import { accountsApi, AccountItemDto, CurrencyCodeDto } from "@/lib/accounts";
 import { categoriesApi } from "@/lib/categories";
+import { CreateExpenseTransactionRequest } from "@/lib/expenses";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -104,24 +105,31 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
 
     setLoading(true);
     try {
-      await createTransaction({
+      const payload: CreateExpenseTransactionRequest = {
         amount: parseFloat(formData.amount),
         transactionDate: formData.transactionDate,
         accountId: parseInt(formData.accountId),
         categoryItemId: parseInt(formData.categoryItemId),
-      });
+      };
+
+      // Add subscriptionId if in subscription mode
+      if (isSubscriptionMode && formData.categoryItemId) {
+        payload.subscriptionId = parseInt(formData.categoryItemId);
+      }
+
+      await createTransaction(payload);
 
       // Reset form
-       setFormData({
-         amount: "",
-         categoryId: "",
-         categoryItemId: "",
-         accountId: "",
-         transactionDate: new Date().toISOString().split('T')[0],
-       });
-       setIsSubscriptionMode(false);
+      setFormData({
+        amount: "",
+        categoryId: "",
+        categoryItemId: "",
+        accountId: "",
+        transactionDate: new Date().toISOString().split('T')[0],
+      });
+      setIsSubscriptionMode(false);
 
-       onOpenChange(false);
+      onOpenChange(false);
       onExpenseAdded?.();
     } catch (error) {
       // Error is handled in the hook

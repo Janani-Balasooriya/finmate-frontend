@@ -85,6 +85,7 @@ export function useExpenseTransactions() {
 
   const createTransaction = useCallback(async (payload: CreateExpenseTransactionRequest) => {
     try {
+      console.log('Creating transaction with payload:', payload);
       const newTransaction = await expenseTransactionsApi.create(payload);
       const mappedTransaction = formatTransactionToExpenseItem(newTransaction);
       setTransactions(prev => [mappedTransaction, ...prev]);
