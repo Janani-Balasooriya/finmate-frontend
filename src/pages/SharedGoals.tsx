@@ -37,6 +37,8 @@ const SharedGoals = () => {
     amount: '',
     accountId: ''
   });
+  const [isAddContributionDialogOpen, setIsAddContributionDialogOpen] = useState(false);
+  const [selectedGoalForContribution, setSelectedGoalForContribution] = useState<Goal | null>(null);
 
   const { toast } = useToast();
   const { goals, loading, createGoal, deleteGoal, getGoalContributions, addContribution, getTotalSaved } = useGoals();
@@ -93,6 +95,7 @@ const SharedGoals = () => {
       });
 
       setAddContributionForm({ amount: '', accountId: '' });
+      setIsAddContributionDialogOpen(false);
       // Refresh contributions if viewing details
       if (selectedGoal && selectedGoal.id === goalId) {
         loadGoalDetails(goalId);
@@ -149,13 +152,13 @@ const SharedGoals = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-                    Rs. {goals.reduce((sum, goal) => sum + (goal.targetAmount * 0.5), 0).toLocaleString()}
+                    Rs. {goals.reduce((sum, goal) => sum + goal.totalSaved, 0).toLocaleString()}
                   </div>
                   <p className="text-sm text-muted-foreground">Total Saved</p>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-                    {goals.length > 0 ? Math.round(goals.reduce((sum, goal) => sum + 50, 0) / goals.length) : 0}%
+                    {goals.length > 0 ? Math.round(goals.reduce((sum, goal) => sum + goal.progress, 0) / goals.length) : 0}%
                   </div>
                   <p className="text-sm text-muted-foreground">Progress</p>
                 </div>
@@ -165,14 +168,14 @@ const SharedGoals = () => {
                 {/* Custom animated progress bar */}
                 <div className="relative h-3 md:h-3.5 w-full overflow-hidden rounded-full bg-muted mb-2">
                   <div className="absolute left-0 top-0 h-full rounded-full bg-emerald-500 transition-all duration-500 ease-out" style={{
-                  width: '61%'
-                }} aria-valuenow={61} aria-valuemax={100} role="progressbar">
+                  width: `${goals.length > 0 ? Math.round(goals.reduce((sum, goal) => sum + goal.progress, 0) / goals.length) : 0}%`
+                }} aria-valuenow={goals.length > 0 ? Math.round(goals.reduce((sum, goal) => sum + goal.progress, 0) / goals.length) : 0} aria-valuemax={100} role="progressbar">
                     {/* Shimmer overlay */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer rounded-full"></div>
                   </div>
                 </div>
                 <p className="text-center text-sm text-muted-foreground mt-2">
-                  You're 61% toward your collective goals.
+                  You're {goals.length > 0 ? Math.round(goals.reduce((sum, goal) => sum + goal.progress, 0) / goals.length) : 0}% toward your collective goals.
                 </p>
               </div>
             </CardContent>
@@ -255,7 +258,7 @@ const SharedGoals = () => {
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm text-muted-foreground">
                           <span>Target: Rs. {goal.targetAmount.toLocaleString()}</span>
-                          <span>Saved: Rs. {(goal.totalSaved || 0).toLocaleString()}</span>
+                          <span>Saved: Rs. {goal.totalSaved.toLocaleString()}</span>
                         </div>
                         <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
                           <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-300 ${accentColors.bar}`} style={{
@@ -263,7 +266,7 @@ const SharedGoals = () => {
                       }} aria-valuenow={goal.progress} aria-valuemax={100} role="progressbar" />
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>{goal.progress || 0}% complete</span>
+                          <span>{goal.progress}% complete</span>
                           <span>{new Date(goal.deadline).toLocaleDateString()}</span>
                         </div>
                       </div>
@@ -273,37 +276,56 @@ const SharedGoals = () => {
 
                     <div className="flex gap-2 pt-2">
                       {/* Add Contribution Dialog */}
-                      <Dialog>
+                      <Dialog open={isAddContributionDialogOpen} onOpenChange={(open) => {
+                        setIsAddContributionDialogOpen(open);
+                        if (!open) {
+                          setSelectedGoalForContribution(null);
+                          setAddContributionForm({ amount: '', accountId: '' });
+                        }
+                      }}>
                         <DialogTrigger asChild>
-                          <Button variant="outline" className="flex-1">
+                          <Button variant="outline" className="flex-1" onClick={() => setSelectedGoalForContribution(goal)}>
                             + Add Contribution
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
                           <DialogHeader>
-                            <DialogTitle>Add Contribution to {goal.name}</DialogTitle>
+                            <DialogTitle>Add Contribution to {selectedGoalForContribution?.name || goal.name}</DialogTitle>
                           </DialogHeader>
                            <div className="space-y-4 py-4">
                              <div className="space-y-2">
                                <Label htmlFor="amount">Contribution Amount</Label>
-                               <Input id="amount" placeholder="Enter amount (Rs.)" type="number" />
+                               <Input
+                                 id="amount"
+                                 placeholder="Enter amount (Rs.)"
+                                 type="number"
+                                 value={addContributionForm.amount}
+                                 onChange={(e) => setAddContributionForm(prev => ({ ...prev, amount: e.target.value }))}
+                               />
                              </div>
                              <div className="space-y-2">
                                <Label htmlFor="account">Account</Label>
-                               <Select>
+                               <Select
+                                 value={addContributionForm.accountId}
+                                 onValueChange={(value) => setAddContributionForm(prev => ({ ...prev, accountId: value }))}
+                               >
                                  <SelectTrigger>
                                    <SelectValue placeholder="Select account" />
                                  </SelectTrigger>
                                  <SelectContent>
-                                   <SelectItem value="savings">Savings Account</SelectItem>
-                                   <SelectItem value="checking">Checking Account</SelectItem>
-                                   <SelectItem value="investment">Investment Account</SelectItem>
-                                   <SelectItem value="emergency">Emergency Savings</SelectItem>
+                                   {accounts.map(account => (
+                                     <SelectItem key={account.id} value={account.id.toString()}>
+                                       {account.name}
+                                     </SelectItem>
+                                   ))}
                                  </SelectContent>
                                </Select>
                              </div>
                              <div className="flex gap-2 pt-4">
-                               <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white">
+                               <Button
+                                 className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                 onClick={() => selectedGoalForContribution && handleAddContribution(selectedGoalForContribution.id)}
+                               >
                                  Add Contribution
                                </Button>
                              </div>
@@ -330,11 +352,11 @@ const SharedGoals = () => {
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Amount Saved:</span>
-                                <span className="text-emerald-600">Rs. {(goal.totalSaved || 0).toLocaleString()}</span>
+                                <span className="text-emerald-600">Rs. {goal.totalSaved.toLocaleString()}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Remaining:</span>
-                                <span>Rs. {(goal.targetAmount - (goal.totalSaved || 0)).toLocaleString()}</span>
+                                <span>Rs. {(goal.targetAmount - goal.totalSaved).toLocaleString()}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Deadline:</span>
@@ -342,12 +364,12 @@ const SharedGoals = () => {
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Progress:</span>
-                                <span>{goal.progress || 0}%</span>
+                                <span>{goal.progress}%</span>
                               </div>
                             </div>
 
                             <div>
-                              <Progress value={goal.progress} className="h-3 mb-2" />
+                              <Progress value={goal.progress || 0} className="h-3 mb-2" />
                             </div>
 
                              <div>

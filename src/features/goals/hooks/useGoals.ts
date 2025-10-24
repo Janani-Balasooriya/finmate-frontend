@@ -100,6 +100,8 @@ export function useGoals() {
   const addContribution = useCallback(async (goalId: number, data: CreateGoalContributionRequest) => {
     try {
       const contribution = await goalsApi.addContribution(goalId, data);
+      // Refresh goals to get updated totalSaved and progress
+      await loadGoals();
       toast({
         title: "Success",
         description: "Contribution added successfully"
@@ -114,7 +116,7 @@ export function useGoals() {
       });
       throw err;
     }
-  }, [toast]);
+  }, [toast, loadGoals]);
 
   const getTotalSaved = useCallback(async (goalId: number): Promise<number> => {
     try {

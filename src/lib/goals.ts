@@ -7,8 +7,8 @@ export interface Goal {
   deadline: string;
   status: string;
   createdAt: string;
-  progress?: number;
-  totalSaved?: number;
+  totalSaved: number;
+  progress: number;
 }
 
 export interface GoalContribution {
