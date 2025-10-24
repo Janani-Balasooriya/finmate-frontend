@@ -336,40 +336,40 @@ const SharedGoals = () => {
                       {/* View Details Dialog */}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" className="flex-1 hover:bg-accent hover:text-accent-foreground" onClick={() => setSelectedGoal(goal)}>
+                          <Button variant="ghost" className="flex-1 hover:bg-accent hover:text-accent-foreground" onClick={() => handleViewGoalDetails(goal)}>
                             View Details
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-lg">
                           <DialogHeader>
-                            <DialogTitle>{goal.name} - Details</DialogTitle>
+                            <DialogTitle>{selectedGoal?.name || goal.name} - Details</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-3">
                               <div className="flex justify-between">
                                 <span className="font-medium">Target Amount:</span>
-                                <span>Rs. {goal.targetAmount.toLocaleString()}</span>
+                                <span>Rs. {selectedGoal?.targetAmount.toLocaleString()}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Amount Saved:</span>
-                                <span className="text-emerald-600">Rs. {goal.totalSaved.toLocaleString()}</span>
+                                <span className="text-emerald-600">Rs. {selectedGoal?.totalSaved.toLocaleString()}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Remaining:</span>
-                                <span>Rs. {(goal.targetAmount - goal.totalSaved).toLocaleString()}</span>
+                                <span>Rs. {(selectedGoal ? selectedGoal.targetAmount - selectedGoal.totalSaved : 0).toLocaleString()}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Deadline:</span>
-                                <span>{goal.deadline}</span>
+                                <span>{selectedGoal?.deadline}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Progress:</span>
-                                <span>{goal.progress}%</span>
+                                <span>{selectedGoal?.progress}%</span>
                               </div>
                             </div>
 
                             <div>
-                              <Progress value={goal.progress || 0} className="h-3 mb-2" />
+                              <Progress value={selectedGoal?.progress || 0} className="h-3 mb-2" />
                             </div>
 
                              <div>
