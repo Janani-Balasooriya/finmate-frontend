@@ -80,7 +80,8 @@ export function getGoalAccent(categoryOrId: string): AccentColors {
 }
 
 // Detect category from goal title for better color assignment
-export function detectGoalCategory(title: string): string {
+export function detectGoalCategory(title: string | undefined): string {
+  if (!title) return 'savings';
   const titleLower = title.toLowerCase();
   
   if (titleLower.includes('vacation') || titleLower.includes('trip') || titleLower.includes('travel') || titleLower.includes('bali')) {

@@ -90,7 +90,7 @@ const Dashboard = () => {
           </div>
 
       {/* Shared Goals */}
-      <SharedGoals />
+      {/* <SharedGoals /> */}
     </div>
   );
 };
