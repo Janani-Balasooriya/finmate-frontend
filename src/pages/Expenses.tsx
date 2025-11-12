@@ -32,7 +32,6 @@ const Expenses = () => {
   const [isDeleteExpenseOpen, setIsDeleteExpenseOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseItem | null>(null);
   const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
-  const [editExpenseItems, setEditExpenseItems] = useState<any[]>([]);
 
   // Load initial data
   useEffect(() => {
@@ -110,18 +109,8 @@ const Expenses = () => {
     loadTransactions();
   };
 
-  const handleEdit = async (expense: ExpenseItem) => {
+  const handleEdit = (expense: ExpenseItem) => {
     setSelectedExpense(expense);
-    // Load category items for the selected expense's category
-    if (expense.categoryId) {
-      try {
-        const items = await expenseCategoriesApi.getItems(expense.categoryId);
-        setEditExpenseItems(items);
-      } catch (error) {
-        console.error("Failed to load category items:", error);
-        setEditExpenseItems([]);
-      }
-    }
     setIsEditExpenseOpen(true);
   };
 
@@ -130,7 +119,7 @@ const Expenses = () => {
     setIsDeleteExpenseOpen(true);
   };
 
-  const handleUpdateExpense = async (id: number, payload: any) => {
+  const handleUpdateExpense = async (id: number, payload: { amount: number; transactionDate: string; accountId: number; categoryId: number; categoryItemId: number }) => {
     try {
       await updateTransaction(id, payload);
       loadTransactions();
@@ -286,7 +275,6 @@ const Expenses = () => {
         row={selectedExpense}
         accounts={accounts}
         categories={categories.map(c => ({ id: c.id, name: c.name, icon: '', color: '', budgetAmount: 0 }))}
-        categoryItems={editExpenseItems}
         onUpdate={handleUpdateExpense}
       />
 

@@ -1,42 +1,67 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AccountItemDto } from "@/lib/accounts";
 import { ExpenseCategoryDto } from "@/lib/categories";
+import { categoriesApi } from "@/lib/categories";
 import { ExpenseItem } from "../types";
+import { useExpenseCategories } from "../hooks/useExpenseCategories";
 
 type Props = {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  row?: ExpenseItem | null;
-  accounts: AccountItemDto[];
-  categories: ExpenseCategoryDto[];
-  categoryItems?: any[];
-  onUpdate: (id: number, payload: any) => Promise<any>;
-};
+   open: boolean;
+   onOpenChange: (v: boolean) => void;
+   row?: ExpenseItem | null;
+   accounts: AccountItemDto[];
+   categories: ExpenseCategoryDto[];
+   onUpdate: (id: number, payload: { amount: number; transactionDate: string; accountId: number; categoryId: number; categoryItemId: number }) => Promise<void>;
+ };
 
-export function EditExpenseDialog({ open, onOpenChange, row, accounts, categories, categoryItems = [], onUpdate }: Props) {
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
-  const [categoryItem, setCategoryItem] = useState("");
-  const [account, setAccount] = useState("");
-  const [date, setDate] = useState("");
-  const [isDateOpen, setIsDateOpen] = useState(false);
+export function EditExpenseDialog({ open, onOpenChange, row, accounts, categories, onUpdate }: Props) {
+   const { items, loadItems } = useExpenseCategories();
+   const [amount, setAmount] = useState("");
+   const [category, setCategory] = useState("");
+   const [categoryItem, setCategoryItem] = useState("");
+   const [account, setAccount] = useState("");
+   const [date, setDate] = useState("");
+   const [isDateOpen, setIsDateOpen] = useState(false);
+   const [isAddCategoryItemOpen, setIsAddCategoryItemOpen] = useState(false);
+   const [newItemForm, setNewItemForm] = useState({ name: "" });
 
   useEffect(() => {
-    if (!row) return;
+    if (!open || !row) {
+      // Clear form when modal is closed or no row is selected
+      setAmount("");
+      setCategory("");
+      setCategoryItem("");
+      setAccount("");
+      setDate("");
+      setIsDateOpen(false);
+      setIsAddCategoryItemOpen(false);
+      setNewItemForm({ name: "" });
+      return;
+    }
+
+    // Populate form with row data when modal opens
     setAmount(row.amountDisplay ? String(row.amountDisplay).replace("Rs. ", "") : "");
     setCategory(String(row.categoryId));
     setCategoryItem(String(row.categoryItemId));
     setAccount(String(row.accountId));
     setDate(row.dateIso);
-  }, [row]);
+  }, [open, row]);
+
+  // Load category items when category changes
+  useEffect(() => {
+    if (category) {
+      loadItems(parseInt(category));
+      setCategoryItem(""); // Reset category item when category changes
+    }
+  }, [category, loadItems]);
 
   const submit = async () => {
     if (!row) return;
@@ -81,14 +106,28 @@ export function EditExpenseDialog({ open, onOpenChange, row, accounts, categorie
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit-category-item">Category Item</Label>
-              <Select value={categoryItem} onValueChange={setCategoryItem}>
-                <SelectTrigger><SelectValue placeholder="Veggies" /></SelectTrigger>
-                <SelectContent>
-                  {categoryItems.map((item) => (
-                    <SelectItem key={item.id} value={String(item.id)}>{item.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={categoryItem} onValueChange={setCategoryItem}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Select item" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {items.map((item) => (
+                      <SelectItem key={item.id} value={String(item.id)}>{item.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsAddCategoryItemOpen(true)}
+                  disabled={!category}
+                  className="shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -141,6 +180,56 @@ export function EditExpenseDialog({ open, onOpenChange, row, accounts, categorie
             <Button className="bg-success hover:bg-success/90 text-white" onClick={submit}>Update Expense</Button>
           </div>
         </div>
+
+        {/* Add Category Item Modal */}
+        <Dialog open={isAddCategoryItemOpen} onOpenChange={setIsAddCategoryItemOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Category Item</DialogTitle>
+              <DialogDescription>
+                Add a new item to the "{categories.find(c => c.id.toString() === category)?.name}" category.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="add-item-name">Item Name</Label>
+                <Input
+                  id="add-item-name"
+                  placeholder="e.g. Groceries"
+                  value={newItemForm.name}
+                  onChange={(e) => setNewItemForm({ ...newItemForm, name: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddCategoryItemOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!category || !newItemForm.name) return;
+
+                  try {
+                    const categoryId = parseInt(category);
+                    const createdItem = await categoriesApi.createCategoryItem(categoryId, newItemForm);
+                    // Refresh items for the selected category
+                    loadItems(categoryId);
+                    setCategoryItem(createdItem.id.toString());
+                    setIsAddCategoryItemOpen(false);
+                    setNewItemForm({ name: "" });
+                  } catch (error) {
+                    console.error("Failed to create category item:", error);
+                  }
+                }}
+                disabled={!newItemForm.name}
+              >
+                Add Item
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
