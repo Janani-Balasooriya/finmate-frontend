@@ -36,7 +36,7 @@ const Dashboard = () => {
   }, [toast]);
 
   const formatCurrency = (amount: number) => {
-    return `Rs. ${amount.toLocaleString()}`;
+    return `Rs. ${amount.toLocaleString() || '0'}`;
   };
 
   return (
@@ -61,7 +61,7 @@ const Dashboard = () => {
             />
             <StatsCard
               title="Net Savings"
-              amount={loading ? "..." : formatCurrency(stats?.netSavings || 0)}
+              amount={loading ? "..." : formatCurrency(Math.max(0, (stats?.netSavings ?? 0)))}
               currency=""
               change={`${stats?.savingsRate?.toFixed(1) || 0}% savings rate`}
               trend="up"
