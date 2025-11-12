@@ -175,7 +175,7 @@ export function ProfileSettingsPage() {
       </Card>
 
       {/* Notifications */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
@@ -212,7 +212,7 @@ export function ProfileSettingsPage() {
             />
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Security */}
       <Card>
@@ -230,9 +230,9 @@ export function ProfileSettingsPage() {
             Change Password
           </Button>
           <Separator />
-          <Button variant="outline" className="w-full sm:w-auto">
+          {/* <Button variant="outline" className="w-full sm:w-auto">
             Enable Two-Factor Authentication
-          </Button>
+          </Button> */}
         </CardContent>
       </Card>
 

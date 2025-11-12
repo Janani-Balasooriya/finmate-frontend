@@ -12,12 +12,12 @@ const accountPreferencesNavItems = [
     icon: User,
     path: "/settings/preferences/profile"
   },
-  {
-    id: "notifications",
-    label: "Notifications",
-    icon: Bell,
-    path: "/settings/preferences/notifications"
-  },
+  // {
+  //   id: "notifications",
+  //   label: "Notifications",
+  //   icon: Bell,
+  //   path: "/settings/preferences/notifications"
+  // },
   {
     id: "members",
     label: "Members",
