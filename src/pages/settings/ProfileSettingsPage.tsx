@@ -9,8 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export function ProfileSettingsPage() {
+  const { theme, toggleTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState({
     name: "John Doe",
@@ -18,7 +20,6 @@ export function ProfileSettingsPage() {
     timezone: "UTC",
     language: "en",
     currency: "USD",
-    darkMode: false,
     emailNotifications: true,
     pushNotifications: false,
   });
@@ -167,8 +168,8 @@ export function ProfileSettingsPage() {
               </p>
             </div>
             <Switch
-              checked={profile.darkMode}
-              onCheckedChange={(checked) => setProfile({ ...profile, darkMode: checked })}
+              checked={theme === 'dark'}
+              onCheckedChange={toggleTheme}
             />
           </div>
         </CardContent>
