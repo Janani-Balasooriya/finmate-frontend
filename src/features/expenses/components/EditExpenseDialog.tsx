@@ -53,15 +53,20 @@ export function EditExpenseDialog({ open, onOpenChange, row, accounts, categorie
     setCategoryItem(String(row.categoryItemId));
     setAccount(String(row.accountId));
     setDate(row.dateIso);
-  }, [open, row]);
 
-  // Load category items when category changes
+    // Load category items for the selected category
+    if (row.categoryId) {
+      loadItems(row.categoryId);
+    }
+  }, [open, row, loadItems]);
+
+ // Load category items when category changes (for when user changes category in the form)
   useEffect(() => {
-    if (category) {
+    if (category && open && row && category !== String(row.categoryId)) {
       loadItems(parseInt(category));
       setCategoryItem(""); // Reset category item when category changes
     }
-  }, [category, loadItems]);
+  }, [category, open, row, loadItems]);
 
   const submit = async () => {
     if (!row) return;
