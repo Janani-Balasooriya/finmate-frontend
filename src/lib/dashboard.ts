@@ -54,6 +54,15 @@ export interface IncomeExpenseTrend {
   data: MonthlyTrendData[];
 }
 
+export interface InsightItem {
+  id: string;
+  title: string;
+  detail: string;
+  severity: 'danger' | 'warning' | 'info' | 'success';
+  ctaLabel: string;
+  ctaRoute: string;
+}
+
 export const dashboardApi = {
   async getStats(): Promise<DashboardStats> {
     return httpClient.get("/dashboard/stats");
@@ -80,5 +89,9 @@ export const dashboardApi = {
 
   async getSpendingByCategory(): Promise<SpendingByCategory> {
     return httpClient.get("/dashboard/spending-by-category");
+  },
+
+  async getInsights(): Promise<InsightItem[]> {
+    return httpClient.get("/insights");
   },
 };
