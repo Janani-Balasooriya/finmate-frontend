@@ -2,11 +2,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign } from "lucide-react";
 import type { Subscription } from "../types";
+import { convertUSDToLKR } from "@/lib/currency";
 
 export default function MonthlyOverview({ subscriptions }: { subscriptions: Subscription[] }) {
-  const totalMonthly = subscriptions
+  const totalMonthlyLKR = subscriptions
     .filter((s) => s.isActive)
     .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+
+  // Convert back to USD for display
+  const totalMonthlyUSD = totalMonthlyLKR / 290;
 
   const activeCount = subscriptions.filter((s) => s.isActive).length;
 
@@ -20,7 +24,7 @@ export default function MonthlyOverview({ subscriptions }: { subscriptions: Subs
               Monthly Overview
             </Badge>
             <p className="text-4xl font-extrabold tracking-tight text-foreground mb-1">
-              ${totalMonthly.toFixed(2)}
+              ${totalMonthlyUSD.toFixed(2)} <span className="text-lg font-normal text-muted-foreground">({totalMonthlyLKR.toLocaleString()} LKR)</span>
             </p>
             <p className="text-sm text-muted-foreground">Total Monthly Cost</p>
           </div>

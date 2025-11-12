@@ -7,6 +7,7 @@ import { formatDate } from "../utils/format";
 import type { Subscription } from "../types";
 import type { SubscriptionItem } from "@/lib/subscriptions";
 import { useMemo } from "react";
+import { convertUSDToLKR } from "@/lib/currency";
 
 type Props = {
   subscription: SubscriptionItem;
@@ -15,6 +16,10 @@ type Props = {
 };
 
 export default function SubscriptionCard({ subscription, onEdit, onDelete }: Props) {
+  // Convert LKR back to USD for display
+  const usdAmount = subscription.amount / 290;
+  const lkrAmount = subscription.amount;
+
   const nextBillingDate = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to start of day
@@ -64,7 +69,7 @@ export default function SubscriptionCard({ subscription, onEdit, onDelete }: Pro
               <div className="flex items-center gap-1">
                 <DollarSign className="h-4 w-4" />
                 <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                  {subscription.currency} {subscription.amount.toFixed(2)}/{subscription.billingCycle}
+                  USD {usdAmount.toFixed(2)} (LKR {lkrAmount.toLocaleString()}) /{subscription.billingCycle}
                 </span>
               </div>
               <div className="flex items-center gap-1">

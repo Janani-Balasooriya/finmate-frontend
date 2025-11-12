@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { subscriptionsApi, SubscriptionItem } from '@/lib/subscriptions';
+import { convertUSDToLKR } from '@/lib/currency';
 import { useToast } from '@/hooks/use-toast';
 
 export function useSubscriptions() {
@@ -11,7 +12,12 @@ export function useSubscriptions() {
     setLoading(true);
     try {
       const data = await subscriptionsApi.getAll();
-      setSubscriptions(data);
+      // Convert USD amounts to LKR
+      const convertedData = data.map(subscription => ({
+        ...subscription,
+        amount: convertUSDToLKR(subscription.amount)
+      }));
+      setSubscriptions(convertedData);
     } catch (err: unknown) {
       const error = err as Error;
       toast({
@@ -34,12 +40,17 @@ export function useSubscriptions() {
   }) => {
     try {
       const created = await subscriptionsApi.create(payload);
-      setSubscriptions(prev => [...prev, created]);
+      // Convert the returned amount to LKR for frontend state
+      const convertedCreated = {
+        ...created,
+        amount: convertUSDToLKR(created.amount)
+      };
+      setSubscriptions(prev => [...prev, convertedCreated]);
       toast({
         title: "Success",
         description: "Subscription created successfully"
       });
-      return created;
+      return convertedCreated;
     } catch (err: unknown) {
       const error = err as Error;
       toast({
@@ -62,12 +73,17 @@ export function useSubscriptions() {
   }) => {
     try {
       const updated = await subscriptionsApi.update(id, payload);
-      setSubscriptions(prev => prev.map(sub => sub.id === id ? updated : sub));
+      // Convert the returned amount back to LKR for frontend state
+      const convertedUpdated = {
+        ...updated,
+        amount: convertUSDToLKR(updated.amount)
+      };
+      setSubscriptions(prev => prev.map(sub => sub.id === id ? convertedUpdated : sub));
       toast({
         title: "Success",
         description: "Subscription updated successfully"
       });
-      return updated;
+      return convertedUpdated;
     } catch (err: unknown) {
       const error = err as Error;
       toast({
