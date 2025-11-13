@@ -121,3 +121,18 @@ export async function removeMember(id: string): Promise<void> {
     throw error;
   }
 }
+
+export async function updateFamilyCurrency(familyId: string, currencyCode: string): Promise<void> {
+  try {
+    const response = await httpClient.put<ApiResponse<void>>(`/families/${familyId}/currency`, {
+      baseCurrencyCode: currencyCode
+    });
+
+    if (!response.success) {
+      throw new Error(response.message || response.error || 'Failed to update family currency');
+    }
+  } catch (error) {
+    console.error('Error updating family currency:', error);
+    throw error;
+  }
+}

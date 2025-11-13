@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, Lock, Globe, Palette, Bell } from "lucide-react";
+import { User, Lock, Globe, Palette, Bell, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,23 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCurrency } from "@/lib/currency";
+import { useUser } from "@/contexts/UserContext";
+import { updateFamilyCurrency } from "@/lib/members";
+import { cn } from "@/lib/utils";
 
 export function ProfileSettingsPage() {
   const { theme, toggleTheme } = useTheme();
+  const { baseCurrencyCode } = useCurrency();
+  const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState(baseCurrencyCode);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [profile, setProfile] = useState({
     name: "John Doe",
     email: "john@example.com",
@@ -24,16 +35,46 @@ export function ProfileSettingsPage() {
     pushNotifications: false,
   });
 
+  const currencies = [
+    { code: "LKR", name: "Sri Lankan Rupee", symbol: "Rs." },
+    { code: "USD", name: "US Dollar", symbol: "$" },
+    { code: "EUR", name: "Euro", symbol: "€" },
+    { code: "GBP", name: "British Pound", symbol: "£" },
+    { code: "JPY", name: "Japanese Yen", symbol: "¥" },
+    { code: "AUD", name: "Australian Dollar", symbol: "A$" },
+    { code: "CAD", name: "Canadian Dollar", symbol: "C$" },
+    { code: "CHF", name: "Swiss Franc", symbol: "Fr" },
+    { code: "CNY", name: "Chinese Yuan", symbol: "¥" },
+    { code: "INR", name: "Indian Rupee", symbol: "₹" },
+  ];
+
   const handleSave = async () => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Update family currency if it changed
+      if (selectedCurrency !== baseCurrencyCode && user?.families?.id) {
+        await updateFamilyCurrency(user.families.id.toString(), selectedCurrency);
+        toast({
+          title: "Currency updated",
+          description: "Your family's base currency has been updated successfully.",
+        });
+        // Refresh the page to update the currency context
+        window.location.reload();
+      } else {
+        toast({
+          title: "Settings saved",
+          description: "Your profile settings have been updated successfully.",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Settings saved",
-        description: "Your profile settings have been updated successfully.",
+        title: "Error",
+        description: "Failed to update settings. Please try again.",
+        variant: "destructive",
       });
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -147,6 +188,76 @@ export function ProfileSettingsPage() {
           </div>
         </CardContent>
       </Card> */}
+
+      {/* Base Currency */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Base Currency
+          </CardTitle>
+          <CardDescription>
+            Set your family's base currency for all financial calculations and displays.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="currency">Currency Code</Label>
+            <Popover open={isCurrencyOpen} onOpenChange={setIsCurrencyOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className={cn(
+                    "w-full justify-between",
+                    !selectedCurrency && "text-muted-foreground"
+                  )}
+                >
+                  {selectedCurrency
+                    ? currencies.find((currency) => currency.code === selectedCurrency)?.name || selectedCurrency
+                    : "Select currency..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search currencies..." />
+                  <CommandList>
+                    <CommandEmpty>No currency found.</CommandEmpty>
+                    <CommandGroup>
+                      {currencies.map((currency) => (
+                        <CommandItem
+                          key={currency.code}
+                          value={currency.name}
+                          onSelect={() => {
+                            setSelectedCurrency(currency.code);
+                            setIsCurrencyOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedCurrency === currency.code ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{currency.symbol}</span>
+                            <span>{currency.name}</span>
+                            <span className="text-muted-foreground">({currency.code})</span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <p className="text-sm text-muted-foreground">
+              Current: {currencies.find((c) => c.code === baseCurrencyCode)?.name || baseCurrencyCode}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Appearance */}
       <Card>
