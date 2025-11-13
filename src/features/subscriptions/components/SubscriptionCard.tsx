@@ -6,8 +6,8 @@ import { Calendar, DollarSign, Edit, Trash2 } from "lucide-react";
 import { formatDate } from "../utils/format";
 import type { Subscription } from "../types";
 import type { SubscriptionItem } from "@/lib/subscriptions";
+import { useCurrency } from "@/lib/currency";
 import { useMemo } from "react";
-import { convertUSDToLKR } from "@/lib/currency";
 
 type Props = {
   subscription: SubscriptionItem;
@@ -16,9 +16,13 @@ type Props = {
 };
 
 export default function SubscriptionCard({ subscription, onEdit, onDelete }: Props) {
-  // Convert LKR back to USD for display
-  const usdAmount = subscription.amount / 290;
-  const lkrAmount = subscription.amount;
+  const { formatCurrency } = useCurrency();
+
+  // Use the actual currency and amounts from backend
+  const originalAmount = subscription.amount;
+  const baseCurrencyAmount = subscription.amountInBaseCurrency;
+  const currencyCode = subscription.currency;
+  const baseCurrencyCode = subscription.baseCurrency;
 
   const nextBillingDate = useMemo(() => {
     const today = new Date();
@@ -67,9 +71,13 @@ export default function SubscriptionCard({ subscription, onEdit, onDelete }: Pro
 
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
-                <DollarSign className="h-4 w-4" />
+                {/* <DollarSign className="h-4 w-4" /> */}
                 <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                  USD {usdAmount.toFixed(2)} (LKR {lkrAmount.toLocaleString()}) /{subscription.billingCycle}
+                  {formatCurrency(originalAmount)}
+                  {currencyCode !== baseCurrencyCode && (
+                    <span className="text-muted-foreground"> ({formatCurrency(baseCurrencyAmount)})</span>
+                  )}
+                  /{subscription.billingCycle}
                 </span>
               </div>
               <div className="flex items-center gap-1">

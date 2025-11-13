@@ -4,6 +4,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { dashboardApi } from "@/lib/dashboard";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/lib/currency";
 import type { BudgetComparison } from "@/lib/dashboard";
 
 const chartConfig = {
@@ -19,6 +20,7 @@ const chartConfig = {
 
 export function BudgetComparisonChart() {
   const { toast } = useToast();
+  const { formatCurrencyValue } = useCurrency();
   const [budgetData, setBudgetData] = useState<BudgetComparison | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -75,11 +77,11 @@ export function BudgetComparisonChart() {
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
-                tickFormatter={(value) => `Rs.${value / 1000}k`}
+                tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
               />
               <ChartTooltip
                 content={<ChartTooltipContent />}
-                formatter={(value) => [`Rs.${value.toLocaleString()}`, ""]}
+                formatter={(value) => [formatCurrencyValue(Number(value)), ""]}
               />
               <Bar
                 dataKey="budget"

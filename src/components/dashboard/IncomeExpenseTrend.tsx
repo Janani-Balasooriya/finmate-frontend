@@ -4,6 +4,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { dashboardApi } from "@/lib/dashboard";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/lib/currency";
 import type { IncomeExpenseTrend } from "@/lib/dashboard";
 
 const chartConfig = {
@@ -19,6 +20,7 @@ const chartConfig = {
 
 export function IncomeExpenseTrend() {
   const { toast } = useToast();
+  const { formatCurrencyValue } = useCurrency();
   const [trendData, setTrendData] = useState<IncomeExpenseTrend | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -76,11 +78,11 @@ export function IncomeExpenseTrend() {
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
-                tickFormatter={(value) => `Rs.${value / 1000}k`}
+                tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
               />
               <ChartTooltip
                 content={<ChartTooltipContent />}
-                formatter={(value) => [`Rs.${value.toLocaleString()}`, ""]}
+                formatter={(value) => [formatCurrencyValue(Number(value)), ""]}
               />
               <Line
                 type="monotone"

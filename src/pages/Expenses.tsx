@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/lib/currency";
 import { useExpenseTransactions } from "@/features/expenses/hooks/useExpenseTransactions";
 import { useExpenseCategories } from "@/features/expenses/hooks/useExpenseCategories";
 import { ExpenseTable } from "@/features/expenses/components/ExpenseTable";
@@ -19,7 +20,8 @@ import { expenseCategoriesApi } from "@/lib/expenses";
 
 const Expenses = () => {
   const { toast } = useToast();
-  const { transactions, loading, loadTransactions, loadTransactionsByDateRange, summary, updateTransaction, deleteTransaction } = useExpenseTransactions();
+  const { formatCurrency } = useCurrency();
+  const { transactions, loading, loadTransactions, loadTransactionsByDateRange, summary, updateTransaction, deleteTransaction } = useExpenseTransactions(formatCurrency);
   const { categories, items, loadCategories, loadItems } = useExpenseCategories();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");

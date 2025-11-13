@@ -3,7 +3,7 @@ import { expenseTransactionsApi, ExpenseTransactionItem, CreateExpenseTransactio
 import { ExpenseItem } from '../types';
 import { useToast } from '@/hooks/use-toast';
 
-export function useExpenseTransactions() {
+export function useExpenseTransactions(formatCurrency?: (amount: number) => string) {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<ExpenseItem[]>([]);
   const [summary, setSummary] = useState<ExpenseTransactionSummary | null>(null);
@@ -27,7 +27,7 @@ export function useExpenseTransactions() {
       categoryItem: transaction.categoryItemName,
       categoryItemId: transaction.categoryItemId,
       categoryColor: transaction.categoryColor,
-      amountDisplay: `Rs. ${transaction.amount.toLocaleString()}`,
+      amountDisplay: formatCurrency ? formatCurrency(Number(transaction.amount ?? 0)) : `Rs. ${transaction.amount.toLocaleString()}`,
       amountValue: Number(transaction.amount ?? 0),
       account: transaction.accountName,
       accountId: transaction.accountId,

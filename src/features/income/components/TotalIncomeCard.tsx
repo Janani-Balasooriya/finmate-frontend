@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { IncomeTransactionSummary } from "@/lib/incomes";
 import { IncomeItem } from "../types";
+import { useCurrency } from "@/lib/currency";
 
 export function TotalIncomeCard({
   summary,
@@ -11,6 +12,7 @@ export function TotalIncomeCard({
   rows?: IncomeItem[] | undefined;
   useFiltered?: boolean;
 }) {
+  const { formatCurrency } = useCurrency();
   const hasRows = Array.isArray(rows) && rows.length > 0;
 
   const totalFromRows = hasRows ? rows!.reduce((acc, r) => acc + (r.amountValue ?? 0), 0) : 0;
@@ -34,12 +36,12 @@ export function TotalIncomeCard({
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-success">Rs. {total.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-success">{formatCurrency(total)}</div>
             <p className="text-sm text-muted-foreground">
               {count} income{count !== 1 ? "s" : ""}
             </p>
             <p className="text-xs text-muted-foreground">
-              Avg: Rs. {avg.toLocaleString()}
+              Avg: {formatCurrency(avg)}
             </p>
           </div>
         </div>

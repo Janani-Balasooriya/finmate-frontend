@@ -11,8 +11,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { accountsApi, AccountItemDto, AccountBalanceDto, CurrencyCodeDto } from "@/lib/accounts";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/lib/currency";
 
 export default function AccountsPage() {
+  const { formatCurrency } = useCurrency();
   const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
   const [accountBalances, setAccountBalances] = useState<AccountBalanceDto[]>([]);
   const [currencyCodes, setCurrencyCodes] = useState<CurrencyCodeDto[]>([]);
@@ -165,13 +167,6 @@ export default function AccountsPage() {
     return balance?.currentBalance || 0;
   };
 
-  const formatCurrency = (amount: number, currencyCode: string) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 0
-    }).format(amount).replace('₹', 'Rs.');
-  };
 
   if (loading) {
     return (
@@ -221,9 +216,9 @@ export default function AccountsPage() {
                   <TableRow key={account.id}>
                     <TableCell className="font-medium">{account.name}</TableCell>
                     <TableCell>{account.currencyCode}</TableCell>
-                    <TableCell>{formatCurrency(account.openingBalance, account.currencyCode)}</TableCell>
+                    <TableCell>{formatCurrency(account.openingBalance)}</TableCell>
                     <TableCell className={currentBalance >= 0 ? "text-green-600" : "text-red-600"}>
-                      {formatCurrency(currentBalance, account.currencyCode)}
+                      {formatCurrency(currentBalance)}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="bg-green-100 text-green-700">

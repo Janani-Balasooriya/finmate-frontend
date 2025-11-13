@@ -18,6 +18,7 @@ import { useGoals } from "@/features/goals/hooks/useGoals";
 import { Goal, GoalContribution } from "@/lib/goals";
 import { accountsApi } from "@/lib/accounts";
 import { AccountItemDto } from "@/lib/accounts";
+import { useCurrency } from "@/lib/currency";
 interface GoalParticipant {
   name: string;
   avatar?: string;
@@ -41,6 +42,7 @@ const SharedGoals = () => {
   const [selectedGoalForContribution, setSelectedGoalForContribution] = useState<Goal | null>(null);
 
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
   const { goals, loading, createGoal, deleteGoal, getGoalContributions, addContribution, getTotalSaved } = useGoals();
 
   useEffect(() => {
@@ -146,13 +148,13 @@ const SharedGoals = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-extrabold tracking-tight">
-                    Rs. {goals.reduce((sum, goal) => sum + goal.targetAmount, 0).toLocaleString()}
+                    {formatCurrency(goals.reduce((sum, goal) => sum + goal.targetAmount, 0))}
                   </div>
                   <p className="text-sm text-muted-foreground">Target Amount</p>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-                    Rs. {goals.reduce((sum, goal) => sum + goal.totalSaved, 0).toLocaleString()}
+                    {formatCurrency(goals.reduce((sum, goal) => sum + goal.totalSaved, 0))}
                   </div>
                   <p className="text-sm text-muted-foreground">Total Saved</p>
                 </div>
@@ -257,8 +259,8 @@ const SharedGoals = () => {
                       </div>
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>Target: Rs. {goal.targetAmount.toLocaleString()}</span>
-                          <span>Saved: Rs. {goal.totalSaved.toLocaleString()}</span>
+                          <span>Target: {formatCurrency(goal.targetAmount)}</span>
+                          <span>Saved: {formatCurrency(goal.totalSaved)}</span>
                         </div>
                         <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
                           <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-300 ${accentColors.bar}`} style={{
@@ -348,15 +350,15 @@ const SharedGoals = () => {
                             <div className="space-y-3">
                               <div className="flex justify-between">
                                 <span className="font-medium">Target Amount:</span>
-                                <span>Rs. {selectedGoal?.targetAmount.toLocaleString()}</span>
+                                <span>{formatCurrency(selectedGoal?.targetAmount || 0)}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Amount Saved:</span>
-                                <span className="text-emerald-600">Rs. {selectedGoal?.totalSaved.toLocaleString()}</span>
+                                <span className="text-emerald-600">{formatCurrency(selectedGoal?.totalSaved || 0)}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Remaining:</span>
-                                <span>Rs. {(selectedGoal ? selectedGoal.targetAmount - selectedGoal.totalSaved : 0).toLocaleString()}</span>
+                                <span>{formatCurrency((selectedGoal ? selectedGoal.targetAmount - selectedGoal.totalSaved : 0))}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium">Deadline:</span>
@@ -401,7 +403,7 @@ const SharedGoals = () => {
                                     </TableHeader>
                                     <TableBody>
                                       {goalContributions.map(contribution => <TableRow key={contribution.id}>
-                                          <TableCell className="text-xs font-medium text-emerald-600">Rs. {contribution.amount.toLocaleString()}</TableCell>
+                                          <TableCell className="text-xs font-medium text-emerald-600">{formatCurrency(contribution.amount)}</TableCell>
                                           <TableCell className="text-xs">{new Date(contribution.createdAt).toLocaleDateString()}</TableCell>
                                           <TableCell className="text-xs">{contribution.accountName}</TableCell>
                                           <TableCell className="text-xs">{contribution.userName}</TableCell>

@@ -8,7 +8,7 @@ export interface DateRange {
   to?: Date; 
 }
 
-export function useIncomeTransactions() {
+export function useIncomeTransactions(formatCurrency?: (amount: number) => string) {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<IncomeTransactionItem[]>([]);
   const [summary, setSummary] = useState<IncomeTransactionSummary | null>(null);
@@ -31,7 +31,7 @@ export function useIncomeTransactions() {
       sourceId: transaction.incomeSourceId,
       sourceColor: transaction.incomeSourceColor,
       note: '', // Backend doesn't have notes field
-      amountDisplay: `Rs. ${transaction.amount.toLocaleString()}`,
+      amountDisplay: formatCurrency ? formatCurrency(Number(transaction.amount ?? 0)) : `Rs. ${transaction.amount.toLocaleString()}`,
       amountValue: Number(transaction.amount ?? 0),
       account: transaction.accountName,
       accountId: transaction.accountId,

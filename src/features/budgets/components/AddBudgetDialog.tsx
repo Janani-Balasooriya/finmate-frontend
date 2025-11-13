@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import IconPicker from "@/components/IconPicker";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
 import { colorOptions } from "../constants/colorOptions";
 
 type AddBudgetState = { name: string; amount: string; category: string; icon: string; color: string };
@@ -21,6 +22,7 @@ export function AddBudgetDialog({
   onChange: (v: AddBudgetState) => void;
   onSubmit: () => void;
 }) {
+  const { baseCurrencyCode } = useCurrency();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* Trigger lives outside in the page; keeping dialog clean */}
@@ -43,7 +45,7 @@ export function AddBudgetDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="budget-amount">Target Amount (Rs.)</Label>
+            <Label htmlFor="budget-amount">Target Amount ({baseCurrencyCode})</Label>
             <Input
               id="budget-amount"
               type="number"

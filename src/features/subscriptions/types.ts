@@ -4,7 +4,9 @@ export interface Subscription {
   id: number | string;
   name: string;
   amount: number;
+  amountInBaseCurrency: number;
   currency: string;
+  baseCurrency: string;
   billingCycle: BillingCycle;
   accountName: string;
   accountId?: string | number;

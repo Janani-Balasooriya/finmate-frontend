@@ -2,15 +2,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign } from "lucide-react";
 import type { Subscription } from "../types";
-import { convertUSDToLKR } from "@/lib/currency";
-
+import { useCurrency } from "@/lib/currency";
 export default function MonthlyOverview({ subscriptions }: { subscriptions: Subscription[] }) {
-  const totalMonthlyLKR = subscriptions
-    .filter((s) => s.isActive)
-    .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+  const { formatCurrency } = useCurrency();
 
-  // Convert back to USD for display
-  const totalMonthlyUSD = totalMonthlyLKR / 290;
+  const totalMonthlyBaseCurrency = subscriptions
+    .filter((s) => s.isActive)
+    .reduce((sum, s) => sum + (Number(s.amountInBaseCurrency) || 0), 0);
+
+  // Get base currency from first subscription (all should have same base currency)
+  const baseCurrencyCode = subscriptions[0]?.baseCurrency || 'LKR';
+
+  // For display purposes, convert base currency to USD for the main display
+  const totalMonthlyUSD = totalMonthlyBaseCurrency / 290;
 
   const activeCount = subscriptions.filter((s) => s.isActive).length;
 
@@ -24,7 +28,7 @@ export default function MonthlyOverview({ subscriptions }: { subscriptions: Subs
               Monthly Overview
             </Badge>
             <p className="text-4xl font-extrabold tracking-tight text-foreground mb-1">
-              ${totalMonthlyUSD.toFixed(2)} <span className="text-lg font-normal text-muted-foreground">({totalMonthlyLKR.toLocaleString()} LKR)</span>
+              ${totalMonthlyUSD.toFixed(2)} <span className="text-lg font-normal text-muted-foreground">({formatCurrency(totalMonthlyBaseCurrency)})</span>
             </p>
             <p className="text-sm text-muted-foreground">Total Monthly Cost</p>
           </div>

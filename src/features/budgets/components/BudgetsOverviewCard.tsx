@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Doughnut } from "react-chartjs-2";
 import { ensureChartRegistration } from "../charts/register";
 import { chartOptions, createProgressChartData, getProgressMessage, getProgressMessageColor } from "../utils/progress";
-import { formatCurrency } from "../utils/formatCurrency";
+import { useCurrency } from "@/lib/currency";
 
 ensureChartRegistration();
 
@@ -13,6 +13,7 @@ export function BudgetsOverviewCard({
   totalSpent: number;
   totalBudget: number;
 }) {
+  const { formatCurrency } = useCurrency();
   const remaining = totalBudget - totalSpent;
 
   return (

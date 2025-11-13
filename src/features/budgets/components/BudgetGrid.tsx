@@ -4,7 +4,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import * as Icons from "lucide-react";
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "../utils/formatCurrency";
+import { useCurrency } from "@/lib/currency";
 import { BudgetsResponseDto, BudgetItemDto } from "@/lib/budgets";
 
 export function BudgetGrid({
@@ -16,6 +16,7 @@ export function BudgetGrid({
   onEdit: (budget: BudgetItemDto) => void;
   onDelete: (budgetId: number, name: string) => void;
 }) {
+  const { formatCurrency } = useCurrency();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {(items || []).map((category) => {

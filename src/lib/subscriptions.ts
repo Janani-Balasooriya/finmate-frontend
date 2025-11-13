@@ -4,7 +4,9 @@ export interface SubscriptionItem {
   id: number;
   name: string;
   amount: number;
+  amountInBaseCurrency: number;
   currency: string;
+  baseCurrency: string;
   billingCycle: string;
   accountId: number;
   accountName: string;

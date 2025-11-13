@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/lib/currency";
 
 import { useAccounts } from "@/features/income/hooks/useAccounts";
 import { useIncomeSources } from "@/features/income/hooks/useIncomeSources";
@@ -24,6 +25,7 @@ import { usePagination } from "@/features/income/hooks/usePagination";
 
 export default function IncomePage() {
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
   const { accounts, currencyCodes, createAccount } = useAccounts((o) => toast(o));
   const { incomeSources, createIncomeSource } = useIncomeSources((o) => toast(o));
   const {
@@ -37,7 +39,7 @@ export default function IncomePage() {
     updateTransaction,
     deleteTransaction,
     getCurrentMonthIncome
-  } = useIncomeTransactions();
+  } = useIncomeTransactions(formatCurrency);
 
   // Toolbar state
   const [dateRange, setDateRange] = useState<DateRange>({});
@@ -135,7 +137,7 @@ export default function IncomePage() {
         <CardHeader>
           <div className="flex items-center justify-end">
             <div className="bg-success/10 text-success border-success/20 text-sm px-3 py-1 rounded-md">
-              You've earned Rs. {currentMonthIncome.toLocaleString()} this month
+              You've earned {formatCurrency(currentMonthIncome)} this month
             </div>
           </div>
 

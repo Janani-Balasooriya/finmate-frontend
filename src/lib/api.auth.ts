@@ -51,7 +51,10 @@ function getUserFromKeys(obj: Record<string, unknown>, keys: string[]): User | u
             lastName: String(value['lastName'] ?? ''),
             role: String(value['role'] ?? '').toLowerCase(),
             status: String(value['status'] ?? ''),
-            families: isRecord(value['families']) && typeof value['families']['id'] === 'number' ? { id: value['families']['id'] as number } : undefined,
+            families: isRecord(value['families']) && typeof value['families']['id'] === 'number' ? {
+              id: value['families']['id'] as number,
+              baseCurrencyCode: String(value['families']['baseCurrencyCode'] ?? 'LKR')
+            } : undefined,
             createdAt: typeof value['createdAt'] === 'string' ? value['createdAt'] as string : undefined,
             updatedAt: typeof value['updatedAt'] === 'string' ? value['updatedAt'] as string : undefined,
           };

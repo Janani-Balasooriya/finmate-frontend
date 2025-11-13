@@ -4,6 +4,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { dashboardApi } from "@/lib/dashboard";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/lib/currency";
 import type { CashFlowAnalysis } from "@/lib/dashboard";
 
 const chartConfig = {
@@ -19,6 +20,7 @@ const chartConfig = {
 
 export function CashFlowChart() {
   const { toast } = useToast();
+  const { formatCurrencyValue } = useCurrency();
   const [cashFlowData, setCashFlowData] = useState<CashFlowAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -82,12 +84,12 @@ export function CashFlowChart() {
                 tickLine={false}
                 axisLine={false}
                 className="text-muted-foreground"
-                tickFormatter={(value) => `Rs.${value / 1000}k`}
+                tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
               />
               <ChartTooltip
                 content={<ChartTooltipContent />}
                 formatter={(value, name) => [
-                  `Rs.${value.toLocaleString()}`,
+                  formatCurrencyValue(Number(value)),
                   name === "cashFlow" ? "Monthly Cash Flow" : "Cumulative Savings"
                 ]}
               />

@@ -10,9 +10,11 @@ import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { CategoryTrendsChart } from "@/components/dashboard/CategoryTrendsChart";
 import { dashboardApi, DashboardStats } from "@/lib/dashboard";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/lib/currency";
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,9 +37,6 @@ const Dashboard = () => {
     loadStats();
   }, [toast]);
 
-  const formatCurrency = (amount: number) => {
-    return `Rs. ${amount.toLocaleString() || '0'}`;
-  };
 
   return (
     <div className="space-y-6">

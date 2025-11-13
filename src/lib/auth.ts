@@ -14,6 +14,7 @@ export interface User {
   status: string;
   families: {
     id: number;
+    baseCurrencyCode: string;
   };
   createdAt?: string;
   updatedAt?: string;
