@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Lock, Globe, Palette, Bell, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,37 +16,68 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrency } from "@/lib/currency";
 import { useUser } from "@/contexts/UserContext";
 import { updateFamilyCurrency } from "@/lib/members";
+import { accountsApi, CurrencyCodeDto } from "@/lib/accounts";
 import { cn } from "@/lib/utils";
 
 export function ProfileSettingsPage() {
-  const { theme, toggleTheme } = useTheme();
-  const { baseCurrencyCode } = useCurrency();
-  const { user } = useUser();
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState(baseCurrencyCode);
-  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
-  const [profile, setProfile] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-    timezone: "UTC",
-    language: "en",
-    currency: "USD",
-    emailNotifications: true,
-    pushNotifications: false,
-  });
+   const { theme, toggleTheme } = useTheme();
+   const { baseCurrencyCode } = useCurrency();
+   const { user } = useUser();
+   const [isLoading, setIsLoading] = useState(false);
+   const [selectedCurrency, setSelectedCurrency] = useState(baseCurrencyCode);
+   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+   const [currencies, setCurrencies] = useState<CurrencyCodeDto[]>([]);
+   const [profile, setProfile] = useState({
+     name: "John Doe",
+     email: "john@example.com",
+     timezone: "UTC",
+     language: "en",
+     currency: "USD",
+     emailNotifications: true,
+     pushNotifications: false,
+   });
 
-  const currencies = [
-    { code: "LKR", name: "Sri Lankan Rupee", symbol: "Rs." },
-    { code: "USD", name: "US Dollar", symbol: "$" },
-    { code: "EUR", name: "Euro", symbol: "€" },
-    { code: "GBP", name: "British Pound", symbol: "£" },
-    { code: "JPY", name: "Japanese Yen", symbol: "¥" },
-    { code: "AUD", name: "Australian Dollar", symbol: "A$" },
-    { code: "CAD", name: "Canadian Dollar", symbol: "C$" },
-    { code: "CHF", name: "Swiss Franc", symbol: "Fr" },
-    { code: "CNY", name: "Chinese Yuan", symbol: "¥" },
-    { code: "INR", name: "Indian Rupee", symbol: "₹" },
-  ];
+   // Load currencies from database
+   useEffect(() => {
+     const loadCurrencies = async () => {
+       try {
+         const currencyData = await accountsApi.getCurrencyCodes();
+         setCurrencies(currencyData);
+       } catch (error) {
+         console.error("Failed to load currencies:", error);
+         // Fallback to basic currencies if API fails
+         setCurrencies([
+           { id: 1, code: "LKR" },
+           { id: 2, code: "USD" },
+           { id: 3, code: "EUR" },
+           { id: 4, code: "GBP" },
+         ]);
+       }
+     };
+     loadCurrencies();
+   }, []);
+
+   // Update selected currency when base currency changes
+   useEffect(() => {
+     setSelectedCurrency(baseCurrencyCode);
+   }, [baseCurrencyCode]);
+
+   // Helper function to get currency display info
+   const getCurrencyInfo = (code: string): { name: string; symbol: string } => {
+     const currencyMap: Record<string, { name: string; symbol: string }> = {
+       LKR: { name: "Sri Lankan Rupee", symbol: "Rs." },
+       USD: { name: "US Dollar", symbol: "$" },
+       EUR: { name: "Euro", symbol: "€" },
+       GBP: { name: "British Pound", symbol: "£" },
+       JPY: { name: "Japanese Yen", symbol: "¥" },
+       AUD: { name: "Australian Dollar", symbol: "A$" },
+       CAD: { name: "Canadian Dollar", symbol: "C$" },
+       CHF: { name: "Swiss Franc", symbol: "Fr" },
+       CNY: { name: "Chinese Yuan", symbol: "¥" },
+       INR: { name: "Indian Rupee", symbol: "₹" },
+     };
+     return currencyMap[code] || { name: code, symbol: code };
+   };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -214,7 +245,7 @@ export function ProfileSettingsPage() {
                   )}
                 >
                   {selectedCurrency
-                    ? currencies.find((currency) => currency.code === selectedCurrency)?.name || selectedCurrency
+                    ? getCurrencyInfo(selectedCurrency).name
                     : "Select currency..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -225,39 +256,49 @@ export function ProfileSettingsPage() {
                   <CommandList>
                     <CommandEmpty>No currency found.</CommandEmpty>
                     <CommandGroup>
-                      {currencies.map((currency) => (
-                        <CommandItem
-                          key={currency.code}
-                          value={currency.name}
-                          onSelect={() => {
-                            setSelectedCurrency(currency.code);
-                            setIsCurrencyOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedCurrency === currency.code ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{currency.symbol}</span>
-                            <span>{currency.name}</span>
-                            <span className="text-muted-foreground">({currency.code})</span>
-                          </div>
-                        </CommandItem>
-                      ))}
+                      {currencies.map((currency) => {
+                        const currencyInfo = getCurrencyInfo(currency.code);
+                        return (
+                          <CommandItem
+                            key={currency.code}
+                            value={currencyInfo.name}
+                            onSelect={() => {
+                              setSelectedCurrency(currency.code);
+                              setIsCurrencyOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedCurrency === currency.code ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{currencyInfo.symbol}</span>
+                              <span>{currencyInfo.name}</span>
+                              <span className="text-muted-foreground">({currency.code})</span>
+                            </div>
+                          </CommandItem>
+                        );
+                      })}
                     </CommandGroup>
                   </CommandList>
                 </Command>
               </PopoverContent>
             </Popover>
             <p className="text-sm text-muted-foreground">
-              Current: {currencies.find((c) => c.code === baseCurrencyCode)?.name || baseCurrencyCode}
+              Current: {getCurrencyInfo(baseCurrencyCode).name}
             </p>
-          </div>
-        </CardContent>
-      </Card>
+            <Button
+              onClick={handleSave}
+              disabled={isLoading || selectedCurrency === baseCurrencyCode}
+              className="mt-4"
+            >
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
+           </div>
+         </CardContent>
+       </Card>
 
       {/* Appearance */}
       <Card>
@@ -348,12 +389,6 @@ export function ProfileSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Changes"}
-        </Button>
-      </div>
     </div>
   );
 }

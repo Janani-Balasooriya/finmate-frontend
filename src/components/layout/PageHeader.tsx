@@ -20,7 +20,7 @@ export function PageHeader({ title, userName, avatarUrl }: PageHeaderProps) {
   const { user, loading } = useUser();
 
   // Use provided userName prop or fall back to context user name
-  const displayName = userName || (user ? `${user.firstName} ${user.lastName}`.trim() : '') || 'User';
+  const displayName = userName || (user ? `Hi ${user.firstName}!` : '') || 'Hi User!';
 
   const handleLogout = () => {
     // Clear authentication data
@@ -47,7 +47,7 @@ export function PageHeader({ title, userName, avatarUrl }: PageHeaderProps) {
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={avatarUrl || "/placeholder.svg"} alt="User" />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {loading ? '...' : displayName?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U'}
+                        {loading ? '...' : user?.firstName?.[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
