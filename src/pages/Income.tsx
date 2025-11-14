@@ -24,8 +24,8 @@ import { filterByDateRange } from "@/features/income/utils/filterByDateRange";
 import { usePagination } from "@/features/income/hooks/usePagination";
 
 export default function IncomePage() {
-  const { toast } = useToast();
-  const { formatCurrency } = useCurrency();
+   const { toast } = useToast();
+   const { formatCurrency, baseCurrencyCode } = useCurrency();
   const { accounts, currencyCodes, createAccount } = useAccounts((o) => toast(o));
   const { incomeSources, createIncomeSource } = useIncomeSources((o) => toast(o));
   const {
@@ -251,6 +251,7 @@ export default function IncomePage() {
         open={isNewAccountOpen}
         onOpenChange={setIsNewAccountOpen}
         currencyCodes={currencyCodes}
+        baseCurrencyCode={baseCurrencyCode}
         onCreate={createAccount}
         onCreated={selectNewAccount}
       />

@@ -1,21 +1,34 @@
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CurrencyCodeDto } from "@/lib/accounts";
-import { useState } from "react";
 
 type Props = {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  currencyCodes: CurrencyCodeDto[];
-  onCreate: (p: { name: string; currencyCodesId: number; openingBalance: number }) => Promise<{ id: number }>;
-  onCreated?: (createdId: number) => void; // select newly created account
-};
+   open: boolean;
+   onOpenChange: (v: boolean) => void;
+   currencyCodes: CurrencyCodeDto[];
+   baseCurrencyCode: string;
+   onCreate: (p: { name: string; currencyCodesId: number; openingBalance: number }) => Promise<{ id: number }>;
+   onCreated?: (createdId: number) => void; // select newly created account
+ };
 
-export function NewAccountDialog({ open, onOpenChange, currencyCodes, onCreate, onCreated }: Props) {
-  const [form, setForm] = useState({ name: "", currencyCodesId: 0, openingBalance: 0 });
+export function NewAccountDialog({ open, onOpenChange, currencyCodes, baseCurrencyCode, onCreate, onCreated }: Props) {
+   // Filter currencies to only show the family's base currency
+   const availableCurrencies = currencyCodes.filter(currency => currency.code === baseCurrencyCode);
+
+   // Set default currency to base currency
+   const [form, setForm] = useState({ name: "", currencyCodesId: 0, openingBalance: 0 });
+
+   // Initialize form with base currency when modal opens
+   React.useEffect(() => {
+     if (open && availableCurrencies.length > 0 && form.currencyCodesId === 0) {
+       const baseCurrency = availableCurrencies[0];
+       setForm(prev => ({ ...prev, currencyCodesId: baseCurrency.id }));
+     }
+   }, [open, availableCurrencies, form.currencyCodesId]);
 
   const submit = async () => {
     const created = await onCreate(form);
@@ -53,7 +66,7 @@ export function NewAccountDialog({ open, onOpenChange, currencyCodes, onCreate, 
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
               <SelectContent>
-                {currencyCodes.map((c) => (
+                {availableCurrencies.map((c) => (
                   <SelectItem key={c.id} value={String(c.id)}>
                     {c.code}
                   </SelectItem>

@@ -15,6 +15,7 @@ import { accountsApi, AccountItemDto, CurrencyCodeDto } from "@/lib/accounts";
 import { categoriesApi } from "@/lib/categories";
 import { CreateExpenseTransactionRequest } from "@/lib/expenses";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 interface AddExpenseDialogProps {
@@ -24,6 +25,7 @@ interface AddExpenseDialogProps {
 
 export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpenseDialogProps & { onExpenseAdded?: () => void }) {
    const { toast } = useToast();
+   const { baseCurrencyCode } = useCurrency();
    const { categories, items, loadCategories, loadItems } = useExpenseCategories();
    const { createTransaction } = useExpenseTransactions();
    const { subscriptions } = useSubscriptions();
@@ -36,6 +38,17 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
    const [newAccountForm, setNewAccountForm] = useState({ name: "", currencyCodesId: 0, openingBalance: 0 });
    const [newItemForm, setNewItemForm] = useState({ name: "" });
    const [isSubscriptionMode, setIsSubscriptionMode] = useState(false);
+
+   // Filter currencies to only show the family's base currency
+   const availableCurrencies = currencyCodes.filter(currency => currency.code === baseCurrencyCode);
+ 
+   // Set default currency when account creation modal opens
+   React.useEffect(() => {
+     if (isAddAccountOpen && availableCurrencies.length > 0 && newAccountForm.currencyCodesId === 0) {
+       const baseCurrency = availableCurrencies[0];
+       setNewAccountForm(prev => ({ ...prev, currencyCodesId: baseCurrency.id }));
+     }
+   }, [isAddAccountOpen, availableCurrencies, newAccountForm.currencyCodesId]);
 
    const [formData, setFormData] = useState({
      amount: "",
@@ -341,7 +354,7 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
                     <SelectValue placeholder="Select currency" />
                   </SelectTrigger>
                   <SelectContent>
-                    {currencyCodes.map((c) => (
+                    {availableCurrencies.map((c) => (
                       <SelectItem key={c.id} value={String(c.id)}>
                         {c.code}
                       </SelectItem>

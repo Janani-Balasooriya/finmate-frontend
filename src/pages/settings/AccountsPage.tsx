@@ -14,11 +14,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useCurrency } from "@/lib/currency";
 
 export default function AccountsPage() {
-  const { formatCurrency } = useCurrency();
-  const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
-  const [accountBalances, setAccountBalances] = useState<AccountBalanceDto[]>([]);
-  const [currencyCodes, setCurrencyCodes] = useState<CurrencyCodeDto[]>([]);
-  const [loading, setLoading] = useState(true);
+   const { formatCurrency, baseCurrencyCode } = useCurrency();
+   const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
+   const [accountBalances, setAccountBalances] = useState<AccountBalanceDto[]>([]);
+   const [currencyCodes, setCurrencyCodes] = useState<CurrencyCodeDto[]>([]);
+   const [loading, setLoading] = useState(true);
   
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -62,6 +62,9 @@ export default function AccountsPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Filter currencies to only show the family's base currency
+  const availableCurrencies = currencyCodes.filter(currency => currency.code === baseCurrencyCode);
 
   const handleAddAccount = async () => {
     try {
@@ -138,9 +141,11 @@ export default function AccountsPage() {
   };
 
   const resetForm = () => {
+    // Set default currency to family's base currency
+    const baseCurrency = currencyCodes.find(c => c.code === baseCurrencyCode);
     setFormData({
       name: "",
-      currencyCodesId: 0,
+      currencyCodesId: baseCurrency?.id || 0,
       openingBalance: 0,
       active: true
     });
@@ -150,7 +155,7 @@ export default function AccountsPage() {
     setEditingAccount(account);
     setFormData({
       name: account.name,
-      currencyCodesId: currencyCodes.find(cc => cc.code === account.currencyCode)?.id || 0,
+      currencyCodesId: availableCurrencies.find(cc => cc.code === account.currencyCode)?.id || 0,
       openingBalance: account.openingBalance,
       active: true
     });
@@ -187,7 +192,10 @@ export default function AccountsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Account Management</h2>
-        <Button onClick={() => setIsAddModalOpen(true)}>
+        <Button onClick={() => {
+          resetForm(); // Initialize form with base currency
+          setIsAddModalOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Account
         </Button>
@@ -284,12 +292,12 @@ export default function AccountsPage() {
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {currencyCodes.map(currency => (
-                    <SelectItem key={currency.id} value={currency.id.toString()}>
-                      {currency.code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                   {availableCurrencies.map(currency => (
+                     <SelectItem key={currency.id} value={currency.id.toString()}>
+                       {currency.code}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
               </Select>
             </div>
             
@@ -350,12 +358,12 @@ export default function AccountsPage() {
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {currencyCodes.map(currency => (
-                    <SelectItem key={currency.id} value={currency.id.toString()}>
-                      {currency.code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                   {availableCurrencies.map(currency => (
+                     <SelectItem key={currency.id} value={currency.id.toString()}>
+                       {currency.code}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
               </Select>
             </div>
             
