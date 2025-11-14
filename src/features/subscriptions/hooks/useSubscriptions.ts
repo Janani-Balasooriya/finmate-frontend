@@ -31,6 +31,7 @@ export function useSubscriptions() {
     amount: number;
     billingCycle: string;
     nextBilling: string;
+    currencyCode: string;
   }) => {
     try {
       const created = await subscriptionsApi.create(payload);

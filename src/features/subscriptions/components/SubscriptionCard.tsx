@@ -9,6 +9,26 @@ import type { SubscriptionItem } from "@/lib/subscriptions";
 import { useCurrency } from "@/lib/currency";
 import { useMemo } from "react";
 
+// Helper function to format currency with specific currency code
+const formatCurrencyWithCode = (amount: number, currencyCode: string) => {
+  try {
+    // Special handling for LKR - use INR formatting but replace symbol with Rs.
+    const actualCurrency = currencyCode === 'LKR' ? 'INR' : currencyCode;
+    const formatted = new Intl.NumberFormat("en-LK", {
+      style: "currency",
+      currency: actualCurrency,
+      currencyDisplay: 'symbol',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+
+    // Replace INR symbol with Rs. for LKR
+    return currencyCode === 'LKR' ? formatted.replace("₹", "Rs.") : formatted;
+  } catch {
+    return `${currencyCode} ${amount.toFixed(2)}`;
+  }
+};
+
 type Props = {
   subscription: SubscriptionItem;
   onEdit: (sub: SubscriptionItem) => void;
@@ -23,6 +43,9 @@ export default function SubscriptionCard({ subscription, onEdit, onDelete }: Pro
   const baseCurrencyAmount = subscription.amountInBaseCurrency;
   const currencyCode = subscription.currency;
   const baseCurrencyCode = subscription.baseCurrency;
+
+  // Debug: temporarily show both formats
+  const debugMode = false;
 
   const nextBillingDate = useMemo(() => {
     const today = new Date();
@@ -73,7 +96,7 @@ export default function SubscriptionCard({ subscription, onEdit, onDelete }: Pro
               <div className="flex items-center gap-1">
                 {/* <DollarSign className="h-4 w-4" /> */}
                 <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                  {formatCurrency(originalAmount)}
+                  {formatCurrencyWithCode(originalAmount, currencyCode)}
                   {currencyCode !== baseCurrencyCode && (
                     <span className="text-muted-foreground"> ({formatCurrency(baseCurrencyAmount)})</span>
                   )}

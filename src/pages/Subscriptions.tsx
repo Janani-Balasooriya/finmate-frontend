@@ -86,6 +86,7 @@ export default function Subscriptions() {
         amount: parseFloat(formData.amount),
         billingCycle: String(formData.billingCycle).toUpperCase(),
         nextBilling: formData.nextBilling,
+        currencyCode: formData.currency,
       });
 
       setIsAddDialogOpen(false);
