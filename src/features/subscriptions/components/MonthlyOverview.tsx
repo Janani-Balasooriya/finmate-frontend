@@ -13,9 +13,6 @@ export default function MonthlyOverview({ subscriptions }: { subscriptions: Subs
   // Get base currency from first subscription (all should have same base currency)
   const baseCurrencyCode = subscriptions[0]?.baseCurrency || 'LKR';
 
-  // For display purposes, convert base currency to USD for the main display
-  const totalMonthlyUSD = totalMonthlyBaseCurrency / 290;
-
   const activeCount = subscriptions.filter((s) => s.isActive).length;
 
   return (
@@ -28,7 +25,7 @@ export default function MonthlyOverview({ subscriptions }: { subscriptions: Subs
               Monthly Overview
             </Badge>
             <p className="text-4xl font-extrabold tracking-tight text-foreground mb-1">
-              ${totalMonthlyUSD.toFixed(2)} <span className="text-lg font-normal text-muted-foreground">({formatCurrency(totalMonthlyBaseCurrency)})</span>
+              {formatCurrency(totalMonthlyBaseCurrency)}
             </p>
             <p className="text-sm text-muted-foreground">Total Monthly Cost</p>
           </div>
