@@ -66,42 +66,44 @@ export function IncomeExpenseTrend() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={trendData?.data || []}>
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                className="text-muted-foreground"
-                tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
-              />
-              <ChartTooltip
-                content={<ChartTooltipContent />}
-                formatter={(value) => [formatCurrencyValue(Number(value)), ""]}
-              />
-              <Line
-                type="monotone"
-                dataKey="income"
-                stroke="var(--color-income)"
-                strokeWidth={3}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="expenses"
-                stroke="var(--color-expenses)"
-                strokeWidth={3}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <LineChart
+            data={trendData?.data || []}
+            width={451}
+            height={254}
+          >
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              axisLine={false}
+              className="text-muted-foreground"
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              className="text-muted-foreground"
+              tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
+            />
+            <ChartTooltip
+              content={<ChartTooltipContent />}
+              formatter={(value) => [formatCurrencyValue(Number(value)), ""]}
+            />
+            <Line
+              type="monotone"
+              dataKey="income"
+              stroke="var(--color-income)"
+              strokeWidth={3}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="expenses"
+              stroke="var(--color-expenses)"
+              strokeWidth={3}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
         </ChartContainer>
       </CardContent>
     </Card>

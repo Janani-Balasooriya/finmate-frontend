@@ -164,6 +164,7 @@ const Auth = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     className="pl-10 h-12 border-slate-200 focus:border-emerald-500"
+                    autoComplete="username"
                     required
                   />
                 </div>
@@ -181,6 +182,7 @@ const Auth = () => {
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
                     className="pl-10 pr-10 h-12 border-slate-200 focus:border-emerald-500"
+                    autoComplete="current-password"
                     required
                   />
                   <button
@@ -206,6 +208,7 @@ const Auth = () => {
                       value={formData.confirmPassword}
                       onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                       className="pl-10 h-12 border-slate-200 focus:border-emerald-500"
+                      autoComplete="new-password"
                       required
                     />
                   </div>

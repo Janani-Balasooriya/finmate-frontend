@@ -62,7 +62,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     // Subscribe to auth state manager
     const unsubscribe = authStateManager.subscribe((user) => {
-      console.log('UserContext: Auth state manager update received', user);
       setUser(user);
       setLoading(false);
       setError(null);
@@ -70,14 +69,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth state changes
     const handleUserChanged = (event: CustomEvent<User>) => {
-      console.log('UserContext: User changed event received', event.detail);
       setUser(event.detail);
       setLoading(false);
       setError(null);
     };
 
     const handleUserCleared = () => {
-      console.log('UserContext: User cleared event received');
       setUser(null);
       setLoading(false);
       setError(null);
@@ -86,7 +83,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // Also listen for storage changes (for cases where localStorage is modified directly)
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'finmate_user') {
-        console.log('UserContext: Storage change detected');
         if (event.newValue) {
           try {
             const newUser = JSON.parse(event.newValue);

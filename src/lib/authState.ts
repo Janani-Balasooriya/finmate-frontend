@@ -17,13 +17,11 @@ class AuthStateManager {
   }
 
   setUser(user: User) {
-    console.log('AuthStateManager: Setting user', user);
     this.currentUser = user;
     this.notifyListeners();
   }
 
   clearUser() {
-    console.log('AuthStateManager: Clearing user');
     this.currentUser = null;
     this.notifyListeners();
   }

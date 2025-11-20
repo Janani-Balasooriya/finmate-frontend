@@ -79,39 +79,41 @@ export function CategoryTrendsChart() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={categoryData?.data || []}>
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                className="text-muted-foreground"
-                tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
-              />
-              <ChartTooltip
-                content={<ChartTooltipContent />}
-                formatter={(value) => [formatCurrencyValue(Number(value)), ""]}
-              />
-              {categoryData?.categoryNames.map((categoryName, index) => {
-                const dataKey = categoryName.toLowerCase().replace(/\s+/g, '');
-                return (
-                  <Line
-                    key={categoryName}
-                    type="monotone"
-                    dataKey={`categories.${categoryName}`}
-                    stroke={generateColor(index)}
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                  />
-                );
-              })}
-            </LineChart>
-          </ResponsiveContainer>
+          <LineChart
+            data={categoryData?.data || []}
+            width={320}
+            height={180}
+          >
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              axisLine={false}
+              className="text-muted-foreground"
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              className="text-muted-foreground"
+              tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
+            />
+            <ChartTooltip
+              content={<ChartTooltipContent />}
+              formatter={(value) => [formatCurrencyValue(Number(value)), ""]}
+            />
+            {categoryData?.categoryNames.map((categoryName, index) => {
+              const dataKey = categoryName.toLowerCase().replace(/\s+/g, '');
+              return (
+                <Line
+                  key={categoryName}
+                  type="monotone"
+                  dataKey={`categories.${categoryName}`}
+                  stroke={generateColor(index)}
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+              );
+            })}
+          </LineChart>
         </ChartContainer>
 
         <div className="flex flex-wrap gap-4 mt-4 justify-center">

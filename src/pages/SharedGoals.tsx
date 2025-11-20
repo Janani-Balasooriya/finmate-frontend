@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -196,6 +196,9 @@ const SharedGoals = () => {
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create New Shared Goal</DialogTitle>
+                <DialogDescription>
+                  Create a new shared goal that family members can contribute to collectively.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -273,67 +276,16 @@ const SharedGoals = () => {
                         </div>
                       </div>
                     </div>
-                    
-                    
+
+
 
                     <div className="flex gap-2 pt-2">
-                      {/* Add Contribution Dialog */}
-                      <Dialog open={isAddContributionDialogOpen} onOpenChange={(open) => {
-                        setIsAddContributionDialogOpen(open);
-                        if (!open) {
-                          setSelectedGoalForContribution(null);
-                          setAddContributionForm({ amount: '', accountId: '' });
-                        }
+                      <Button variant="outline" className="flex-1" onClick={() => {
+                        setSelectedGoalForContribution(goal);
+                        setIsAddContributionDialogOpen(true);
                       }}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" className="flex-1" onClick={() => setSelectedGoalForContribution(goal)}>
-                            + Add Contribution
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>Add Contribution to {selectedGoalForContribution?.name || goal.name}</DialogTitle>
-                          </DialogHeader>
-                           <div className="space-y-4 py-4">
-                             <div className="space-y-2">
-                               <Label htmlFor="amount">Contribution Amount</Label>
-                               <Input
-                                 id="amount"
-                                 placeholder="Enter amount (Rs.)"
-                                 type="number"
-                                 value={addContributionForm.amount}
-                                 onChange={(e) => setAddContributionForm(prev => ({ ...prev, amount: e.target.value }))}
-                               />
-                             </div>
-                             <div className="space-y-2">
-                               <Label htmlFor="account">Account</Label>
-                               <Select
-                                 value={addContributionForm.accountId}
-                                 onValueChange={(value) => setAddContributionForm(prev => ({ ...prev, accountId: value }))}
-                               >
-                                 <SelectTrigger>
-                                   <SelectValue placeholder="Select account" />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                   {accounts.map(account => (
-                                     <SelectItem key={account.id} value={account.id.toString()}>
-                                       {account.name}
-                                     </SelectItem>
-                                   ))}
-                                 </SelectContent>
-                               </Select>
-                             </div>
-                             <div className="flex gap-2 pt-4">
-                               <Button
-                                 className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
-                                 onClick={() => selectedGoalForContribution && handleAddContribution(selectedGoalForContribution.id)}
-                               >
-                                 Add Contribution
-                               </Button>
-                             </div>
-                           </div>
-                        </DialogContent>
-                      </Dialog>
+                        + Add Contribution
+                      </Button>
 
                       {/* View Details Dialog */}
                       <Dialog>
@@ -345,6 +297,9 @@ const SharedGoals = () => {
                         <DialogContent className="sm:max-w-lg">
                           <DialogHeader>
                             <DialogTitle>{selectedGoal?.name || goal.name} - Details</DialogTitle>
+                            <DialogDescription>
+                              View detailed information about this shared goal including progress, contributions, and participants.
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-3">
@@ -434,7 +389,7 @@ const SharedGoals = () => {
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction 
+                                      <AlertDialogAction
                                         onClick={() => handleDeleteGoal(goal.id, goal.name)}
                                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                       >
@@ -453,6 +408,62 @@ const SharedGoals = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Add Contribution Dialog - Single Instance */}
+        <Dialog open={isAddContributionDialogOpen} onOpenChange={(open) => {
+          setIsAddContributionDialogOpen(open);
+          if (!open) {
+            setSelectedGoalForContribution(null);
+            setAddContributionForm({ amount: '', accountId: '' });
+          }
+        }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Contribution to {selectedGoalForContribution?.name}</DialogTitle>
+              <DialogDescription>
+                Add a contribution to this shared goal from one of your accounts.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount">Contribution Amount</Label>
+                <Input
+                  id="amount"
+                  placeholder="Enter amount (Rs.)"
+                  type="number"
+                  value={addContributionForm.amount}
+                  onChange={(e) => setAddContributionForm(prev => ({ ...prev, amount: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="account">Account</Label>
+                <Select
+                  value={addContributionForm.accountId}
+                  onValueChange={(value) => setAddContributionForm(prev => ({ ...prev, accountId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map(account => (
+                      <SelectItem key={account.id} value={account.id.toString()}>
+                        {account.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+                  onClick={() => selectedGoalForContribution && handleAddContribution(selectedGoalForContribution.id)}
+                >
+                  Add Contribution
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>;
 };

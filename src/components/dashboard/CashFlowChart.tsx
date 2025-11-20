@@ -66,42 +66,44 @@ export function CashFlowChart() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={cashFlowData?.data || []}>
-              <defs>
-                <linearGradient id="cashFlowGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                className="text-muted-foreground"
-                tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
-              />
-              <ChartTooltip
-                content={<ChartTooltipContent />}
-                formatter={(value, name) => [
-                  formatCurrencyValue(Number(value)),
-                  name === "cashFlow" ? "Monthly Cash Flow" : "Cumulative Savings"
-                ]}
-              />
-              <Area
-                type="monotone"
-                dataKey="cashFlow"
-                stroke="hsl(var(--success))"
-                fill="url(#cashFlowGradient)"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <AreaChart
+            data={cashFlowData?.data || []}
+            width={320}
+            height={180}
+          >
+            <defs>
+              <linearGradient id="cashFlowGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              axisLine={false}
+              className="text-muted-foreground"
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              className="text-muted-foreground"
+              tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
+            />
+            <ChartTooltip
+              content={<ChartTooltipContent />}
+              formatter={(value, name) => [
+                formatCurrencyValue(Number(value)),
+                name === "cashFlow" ? "Monthly Cash Flow" : "Cumulative Savings"
+              ]}
+            />
+            <Area
+              type="monotone"
+              dataKey="cashFlow"
+              stroke="hsl(var(--success))"
+              fill="url(#cashFlowGradient)"
+              strokeWidth={2}
+            />
+          </AreaChart>
         </ChartContainer>
       </CardContent>
     </Card>

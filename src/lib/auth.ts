@@ -68,25 +68,21 @@ export const auth = {
   
   setUser: (user: User): void => {
     if (typeof window === 'undefined') return;
-    console.log('Auth: Setting user', user);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     // Update global state manager
     authStateManager.setUser(user);
     // Emit event that user has changed
     const event = new CustomEvent(AUTH_EVENTS.USER_CHANGED, { detail: user });
-    console.log('Auth: Dispatching USER_CHANGED event', event);
     window.dispatchEvent(event);
   },
   
   removeUser: (): void => {
     if (typeof window === 'undefined') return;
-    console.log('Auth: Removing user');
     localStorage.removeItem(USER_KEY);
     // Update global state manager
     authStateManager.clearUser();
     // Emit event that user has been cleared
     const event = new CustomEvent(AUTH_EVENTS.USER_CLEARED);
-    console.log('Auth: Dispatching USER_CLEARED event', event);
     window.dispatchEvent(event);
   },
   

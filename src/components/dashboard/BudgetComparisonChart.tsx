@@ -65,37 +65,40 @@ export function BudgetComparisonChart() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={budgetData?.data || []} barCategoryGap="20%">
-              <XAxis
-                dataKey="category"
-                tickLine={false}
-                axisLine={false}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                className="text-muted-foreground"
-                tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
-              />
-              <ChartTooltip
-                content={<ChartTooltipContent />}
-                formatter={(value) => [formatCurrencyValue(Number(value)), ""]}
-              />
-              <Bar
-                dataKey="budget"
-                fill="var(--color-budget)"
-                radius={[2, 2, 0, 0]}
-                opacity={0.7}
-              />
-              <Bar
-                dataKey="actual"
-                fill="var(--color-actual)"
-                radius={[2, 2, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <BarChart
+            data={budgetData?.data || []}
+            barCategoryGap="20%"
+            width={320}
+            height={180}
+          >
+            <XAxis
+              dataKey="category"
+              tickLine={false}
+              axisLine={false}
+              className="text-muted-foreground"
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              className="text-muted-foreground"
+              tickFormatter={(value) => `${formatCurrencyValue(value / 1000)}k`}
+            />
+            <ChartTooltip
+              content={<ChartTooltipContent />}
+              formatter={(value) => [formatCurrencyValue(Number(value)), ""]}
+            />
+            <Bar
+              dataKey="budget"
+              fill="var(--color-budget)"
+              radius={[2, 2, 0, 0]}
+              opacity={0.7}
+            />
+            <Bar
+              dataKey="actual"
+              fill="var(--color-actual)"
+              radius={[2, 2, 0, 0]}
+            />
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>
