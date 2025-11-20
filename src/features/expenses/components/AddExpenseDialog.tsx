@@ -98,7 +98,7 @@ export function AddExpenseDialog({ open, onOpenChange, onExpenseAdded }: AddExpe
       if (subscription) {
         setFormData(prev => ({
           ...prev,
-          amount: subscription.amount.toString(),
+          amount: subscription.amountInBaseCurrency.toString(), // Use converted amount for base currency
           categoryId: subscription.categoryId.toString(),
           accountId: subscription.accountId.toString(),
         }));
