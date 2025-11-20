@@ -129,11 +129,20 @@ export function useGoals() {
       });
     } catch (err: unknown) {
       const error = err as Error;
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete contribution",
-        variant: "destructive"
-      });
+      // Check for specific error message about deleting another user's contribution
+      if (error.message && error.message.includes("Cannot delete another user's contribution")) {
+        toast({
+          title: "Permission Denied",
+          description: "You cannot delete other user's contribution",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to delete contribution",
+          variant: "destructive"
+        });
+      }
       throw err;
     }
   }, [toast, loadGoals]);

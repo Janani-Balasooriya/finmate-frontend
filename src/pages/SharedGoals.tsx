@@ -274,10 +274,19 @@ const SharedGoals = () => {
               {goals.map(goal => {
               const category = detectGoalCategory(goal.name);
               const accentColors = getGoalAccent(category);
-              return <div key={goal.id} className={`rounded-xl border border-border/70 bg-card shadow-sm hover:shadow-md transition-shadow p-6 space-y-4 relative before:absolute before:inset-x-0 before:-top-px before:h-1 before:rounded-t-xl before:${accentColors.bar}`}>
+              const isOverAchieved = goal.totalSaved > goal.targetAmount;
+              return <div key={goal.id} className={`rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow p-6 space-y-4 relative before:absolute before:inset-x-0 before:-top-px before:h-1 before:rounded-t-xl ${isOverAchieved ? 'border-yellow-400/50 shadow-yellow-400/20 shadow-lg ring-2 ring-yellow-400/20' : `border-border/70 before:${accentColors.bar}`}`}>
                     <div>
                       <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-semibold text-lg">{goal.name}</h3>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg">{goal.name}</h3>
+                          {goal.totalSaved > goal.targetAmount && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="flex items-center gap-1 text-yellow-500 dark:text-yellow-400">
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         <Badge variant="secondary" className={`text-xs ${accentColors.badge}`}>
                           {category === goal.name ? 'Goal' : category.charAt(0).toUpperCase() + category.slice(1)}
                         </Badge>
@@ -288,12 +297,20 @@ const SharedGoals = () => {
                           <span>Saved: {formatCurrency(goal.totalSaved)}</span>
                         </div>
                         <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                          <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-300 ${accentColors.bar}`} style={{
-                        width: `${goal.progress}%`
+                          <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-300 ${isOverAchieved ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : accentColors.bar}`} style={{
+                        width: `${Math.min(goal.progress, 100)}%`
                       }} aria-valuenow={goal.progress} aria-valuemax={100} role="progressbar" />
+                          {isOverAchieved && (
+                            <div className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 animate-pulse" style={{
+                              width: '100%',
+                              boxShadow: '0 0 10px rgba(251, 191, 36, 0.5)'
+                            }} />
+                          )}
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>{goal.progress}% complete</span>
+                          <span className={goal.totalSaved > goal.targetAmount ? "text-yellow-600 dark:text-yellow-400 font-bold" : ""}>
+                            {goal.totalSaved > goal.targetAmount ? `${goal.progress}% GOAL ACHIEVED!` : `${goal.progress}% complete`}
+                          </span>
                           <span>{new Date(goal.deadline).toLocaleDateString()}</span>
                         </div>
                       </div>
@@ -316,11 +333,21 @@ const SharedGoals = () => {
                             View Details
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-lg">
+                        <DialogContent className="sm:max-w-2xl">
                           <DialogHeader>
-                            <DialogTitle>{selectedGoal?.name || goal.name} - Details</DialogTitle>
+                            <DialogTitle className="flex items-center gap-2">
+                              {selectedGoal?.name || goal.name} - Details
+                              {selectedGoal && selectedGoal.totalSaved > selectedGoal.targetAmount && (
+                                <span className="text-2xl animate-bounce">🎉</span>
+                              )}
+                            </DialogTitle>
                             <DialogDescription>
                               View detailed information about this shared goal including progress, contributions, and participants.
+                              {selectedGoal && selectedGoal.totalSaved > selectedGoal.targetAmount && (
+                                <span className="block mt-2 text-yellow-600 dark:text-yellow-400 font-medium">
+                                  🎯 Congratulations! This goal has been achieved! 🏆
+                                </span>
+                              )}
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
@@ -343,12 +370,20 @@ const SharedGoals = () => {
                               </div>
                               <div className="flex justify-between">
                                 <span className="font-medium text-sm">Progress:</span>
-                                <span className="text-sm">{selectedGoal?.progress}%</span>
+                                <span className={`text-sm ${selectedGoal && selectedGoal.totalSaved > selectedGoal.targetAmount ? 'text-yellow-600 dark:text-yellow-400 font-bold' : ''}`}>
+                                  {selectedGoal && selectedGoal.totalSaved > selectedGoal.targetAmount
+                                    ? `${selectedGoal.progress}% ⭐ ACHIEVED! ⭐`
+                                    : `${selectedGoal?.progress}%`
+                                  }
+                                </span>
                               </div>
                             </div>
 
                             <div>
-                              <Progress value={selectedGoal?.progress || 0} className="h-3 mb-2" />
+                              <Progress
+                                value={selectedGoal?.progress || 0}
+                                className={`h-3 mb-2 ${selectedGoal && selectedGoal.totalSaved > selectedGoal.targetAmount ? '[&>div]:bg-gradient-to-r [&>div]:from-yellow-400 [&>div]:to-orange-500 [&>div]:animate-pulse' : ''}`}
+                              />
                             </div>
 
                              <div>
