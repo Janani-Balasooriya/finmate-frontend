@@ -41,6 +41,8 @@ export const goalsApi = {
     httpClient.get<GoalContribution[]>(`/goals/${goalId}/contributions`),
   addContribution: (goalId: number, data: CreateGoalContributionRequest) =>
     httpClient.post<GoalContribution>(`/goals/${goalId}/contributions`, data),
+  deleteContribution: (goalId: number, contributionId: number) =>
+    httpClient.delete(`/goals/${goalId}/contributions/${contributionId}`),
   getTotalSaved: (goalId: number) =>
     httpClient.get<number>(`/goals/${goalId}/total-saved`),
 };

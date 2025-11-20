@@ -118,6 +118,26 @@ export function useGoals() {
     }
   }, [toast, loadGoals]);
 
+  const deleteContribution = useCallback(async (goalId: number, contributionId: number) => {
+    try {
+      await goalsApi.deleteContribution(goalId, contributionId);
+      // Refresh goals to get updated totalSaved and progress
+      await loadGoals();
+      toast({
+        title: "Success",
+        description: "Contribution deleted successfully"
+      });
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete contribution",
+        variant: "destructive"
+      });
+      throw err;
+    }
+  }, [toast, loadGoals]);
+
   const getTotalSaved = useCallback(async (goalId: number): Promise<number> => {
     try {
       return await goalsApi.getTotalSaved(goalId);
@@ -145,6 +165,7 @@ export function useGoals() {
     deleteGoal,
     getGoalContributions,
     addContribution,
+    deleteContribution,
     getTotalSaved
   };
 }

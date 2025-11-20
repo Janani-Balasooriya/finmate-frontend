@@ -43,7 +43,7 @@ const SharedGoals = () => {
 
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
-  const { goals, loading, createGoal, deleteGoal, getGoalContributions, addContribution, getTotalSaved } = useGoals();
+  const { goals, loading, createGoal, deleteGoal, getGoalContributions, addContribution, deleteContribution, getTotalSaved } = useGoals();
 
   useEffect(() => {
     const loadAccounts = async () => {
@@ -98,9 +98,14 @@ const SharedGoals = () => {
 
       setAddContributionForm({ amount: '', accountId: '' });
       setIsAddContributionDialogOpen(false);
-      // Refresh contributions if viewing details
+      // Refresh contributions and update selected goal if viewing details
       if (selectedGoal && selectedGoal.id === goalId) {
-        loadGoalDetails(goalId);
+        await loadGoalDetails(goalId);
+        // Update selectedGoal with new totals from the refreshed goals list
+        const updatedGoal = goals.find(g => g.id === goalId);
+        if (updatedGoal) {
+          setSelectedGoal(updatedGoal);
+        }
       }
     } catch (error) {
       // Error is handled in the hook
@@ -124,6 +129,23 @@ const SharedGoals = () => {
   const handleDeleteGoal = async (goalId: number, goalName: string) => {
     try {
       await deleteGoal(goalId);
+    } catch (error) {
+      // Error is handled in the hook
+    }
+  };
+
+  const handleDeleteContribution = async (goalId: number, contributionId: number) => {
+    try {
+      await deleteContribution(goalId, contributionId);
+      // Refresh contributions and update selected goal after deletion
+      if (selectedGoal && selectedGoal.id === goalId) {
+        await loadGoalDetails(goalId);
+        // Update selectedGoal with new totals from the refreshed goals list
+        const updatedGoal = goals.find(g => g.id === goalId);
+        if (updatedGoal) {
+          setSelectedGoal(updatedGoal);
+        }
+      }
     } catch (error) {
       // Error is handled in the hook
     }
@@ -304,24 +326,24 @@ const SharedGoals = () => {
                           <div className="space-y-4 py-4">
                             <div className="space-y-3">
                               <div className="flex justify-between">
-                                <span className="font-medium">Target Amount:</span>
-                                <span>{formatCurrency(selectedGoal?.targetAmount || 0)}</span>
+                                <span className="font-medium text-sm">Target Amount:</span>
+                                <span className="text-sm">{formatCurrency(selectedGoal?.targetAmount || 0)}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="font-medium">Amount Saved:</span>
-                                <span className="text-emerald-600">{formatCurrency(selectedGoal?.totalSaved || 0)}</span>
+                                <span className="font-medium text-sm">Amount Saved:</span>
+                                <span className="text-emerald-600 text-sm">{formatCurrency(selectedGoal?.totalSaved || 0)}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="font-medium">Remaining:</span>
-                                <span>{formatCurrency((selectedGoal ? selectedGoal.targetAmount - selectedGoal.totalSaved : 0))}</span>
+                                <span className="font-medium text-sm">Remaining:</span>
+                                <span className="text-sm">{formatCurrency((selectedGoal ? selectedGoal.targetAmount - selectedGoal.totalSaved : 0))}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="font-medium">Deadline:</span>
-                                <span>{selectedGoal?.deadline}</span>
+                                <span className="font-medium text-sm">Deadline:</span>
+                                <span className="text-sm">{selectedGoal?.deadline}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="font-medium">Progress:</span>
-                                <span>{selectedGoal?.progress}%</span>
+                                <span className="font-medium text-sm">Progress:</span>
+                                <span className="text-sm">{selectedGoal?.progress}%</span>
                               </div>
                             </div>
 
@@ -345,7 +367,7 @@ const SharedGoals = () => {
                              </div>
 
                               <div>
-                                <h4 className="font-medium mb-3">Contribution History:</h4>
+                                <h4 className="font-medium mb-3 text-base">Contribution History:</h4>
                                 <div className="max-h-48 overflow-y-auto">
                                   <Table>
                                     <TableHeader>
@@ -354,6 +376,7 @@ const SharedGoals = () => {
                                         <TableHead className="text-xs">Date</TableHead>
                                         <TableHead className="text-xs">Account</TableHead>
                                         <TableHead className="text-xs">Participant</TableHead>
+                                        <TableHead className="text-xs">Actions</TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -362,6 +385,32 @@ const SharedGoals = () => {
                                           <TableCell className="text-xs">{new Date(contribution.createdAt).toLocaleDateString()}</TableCell>
                                           <TableCell className="text-xs">{contribution.accountName}</TableCell>
                                           <TableCell className="text-xs">{contribution.userName}</TableCell>
+                                          <TableCell className="text-xs">
+                                            <AlertDialog>
+                                              <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10">
+                                                  <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                              </AlertDialogTrigger>
+                                              <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                  <AlertDialogTitle>Delete Contribution</AlertDialogTitle>
+                                                  <AlertDialogDescription>
+                                                    Are you sure you want to delete this contribution of {formatCurrency(contribution.amount)}? This will reduce the goal's saved amount and cannot be undone.
+                                                  </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                  <AlertDialogAction
+                                                    onClick={() => handleDeleteContribution(selectedGoal!.id, contribution.id)}
+                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                  >
+                                                    Delete
+                                                  </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                              </AlertDialogContent>
+                                            </AlertDialog>
+                                          </TableCell>
                                         </TableRow>)}
                                     </TableBody>
                                   </Table>
