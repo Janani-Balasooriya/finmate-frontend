@@ -66,8 +66,7 @@ const Auth = () => {
           email: formData.email,
           password: formData.password,
         });
-        console.log("Login response:", loginRes); // <-- Add this
-        
+
         // Get user info
         await authApi.me();
         
