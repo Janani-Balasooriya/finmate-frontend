@@ -132,7 +132,7 @@ export function useGoals() {
       // Check for specific error message about deleting another user's contribution
       if (error.message && error.message.includes("Cannot delete another user's contribution")) {
         toast({
-          title: "Permission Denied",
+          title: "🔔 Permission Denied",
           description: "You cannot delete other user's contribution",
           variant: "destructive"
         });
