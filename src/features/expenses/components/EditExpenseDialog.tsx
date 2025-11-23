@@ -48,7 +48,9 @@ export function EditExpenseDialog({ open, onOpenChange, row, accounts, categorie
     }
 
     // Populate form with row data when modal opens
-    setAmount(row.amountDisplay ? String(row.amountDisplay).replace("Rs. ", "") : "");
+    // Extract numeric value from amountDisplay (remove currency symbols and formatting)
+    const numericAmount = row.amountValue ? String(row.amountValue) : "0";
+    setAmount(numericAmount);
     setCategory(String(row.categoryId));
     setCategoryItem(String(row.categoryItemId));
     setAccount(String(row.accountId));
@@ -70,8 +72,10 @@ export function EditExpenseDialog({ open, onOpenChange, row, accounts, categorie
 
   const submit = async () => {
     if (!row) return;
+    // Parse amount by removing currency symbols and commas
+    const cleanAmount = amount.replace(/[^\d.]/g, ''); // Remove everything except digits and decimal point
     const payload = {
-      amount: parseFloat(amount.replace(/,/g, '')),
+      amount: parseFloat(cleanAmount),
       transactionDate: date,
       accountId: parseInt(account),
       categoryId: parseInt(category),

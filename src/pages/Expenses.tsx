@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, Plus } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrency } from "@/lib/currency";
 import { useExpenseTransactions } from "@/features/expenses/hooks/useExpenseTransactions";
@@ -16,12 +17,15 @@ import { EditExpenseDialog } from "@/features/expenses/components/EditExpenseDia
 import { DeleteExpenseDialog } from "@/features/expenses/components/DeleteExpenseDialog";
 import { ExpenseItem, DateRange } from "@/features/expenses/types";
 import { accountsApi, AccountItemDto } from "@/lib/accounts";
-import { expenseCategoriesApi } from "@/lib/expenses";
+import { expenseCategoriesApi, expenseTransactionsApi } from "@/lib/expenses";
 
 const Expenses = () => {
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
-  const { transactions, loading, loadTransactions, loadTransactionsByDateRange, summary, updateTransaction, deleteTransaction } = useExpenseTransactions(formatCurrency);
+  const { transactions, loading, loadTransactions, loadTransactionsByDateRange, summary, updateTransaction, deleteTransaction, pagination, loadSummary } = useExpenseTransactions(formatCurrency);
+
+  // State for all filtered transactions (used for totals calculation)
+  const [allFilteredTransactions, setAllFilteredTransactions] = useState<ExpenseItem[]>([]);
   const { categories, items, loadCategories, loadItems } = useExpenseCategories();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -30,18 +34,96 @@ const Expenses = () => {
   const [amountSortOrder, setAmountSortOrder] = useState("recent");
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [isDateRangePickerOpen, setIsDateRangePickerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Pagination calculations
+  const total = pagination.totalElements;
+  const totalPages = pagination.totalPages;
+  const start = currentPage * itemsPerPage + 1;
+  const end = Math.min((currentPage + 1) * itemsPerPage, total);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isEditExpenseOpen, setIsEditExpenseOpen] = useState(false);
   const [isDeleteExpenseOpen, setIsDeleteExpenseOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseItem | null>(null);
   const [accounts, setAccounts] = useState<AccountItemDto[]>([]);
 
+  // Helper function to format transaction items
+  const formatTransactionToExpenseItem = (transaction: any): ExpenseItem => {
+    const date = new Date(transaction.transactionDate);
+    const formattedDate = date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    return {
+      id: transaction.id,
+      date: formattedDate,
+      dateIso: transaction.transactionDate.toString().split('T')[0],
+      category: transaction.categoryName,
+      categoryId: transaction.categoryId,
+      categoryItem: transaction.categoryItemName,
+      categoryItemId: transaction.categoryItemId,
+      categoryColor: transaction.categoryColor,
+      amountDisplay: formatCurrency ? formatCurrency(Number(transaction.amount ?? 0)) : `Rs. ${transaction.amount.toLocaleString()}`,
+      amountValue: Number(transaction.amount ?? 0),
+      account: transaction.accountName,
+      accountId: transaction.accountId,
+      subscriptionId: transaction.subscriptionId,
+      subscriptionName: transaction.subscriptionName
+    };
+  };
+
+  // Load all transactions for current filters (used for accurate totals)
+  const loadAllFilteredTransactions = useCallback(async () => {
+    try {
+      let allTransactions: any[] = [];
+
+      if (dateRange.from && dateRange.to) {
+        // Load all transactions for date range
+        const startDate = dateRange.from.toISOString().split('T')[0];
+        const endDate = dateRange.to.toISOString().split('T')[0];
+        allTransactions = await expenseTransactionsApi.getByDateRange(startDate, endDate);
+      } else {
+        // Load all transactions (no date filter)
+        // For performance, we'll load with a large page size
+        const response = await expenseTransactionsApi.getAll(0, 1000); // Load up to 1k transactions
+        allTransactions = response.content;
+      }
+
+      // Apply client-side filters
+      let filtered = allTransactions.map(formatTransactionToExpenseItem);
+
+      if (selectedCategory !== "all") {
+        const categoryId = parseInt(selectedCategory);
+        filtered = filtered.filter((t: ExpenseItem) => t.categoryId === categoryId);
+      }
+
+      if (selectedItem !== "all") {
+        const itemId = parseInt(selectedItem);
+        filtered = filtered.filter((t: ExpenseItem) => t.categoryItemId === itemId);
+      }
+
+      if (selectedAccount !== "all") {
+        const accountId = parseInt(selectedAccount);
+        filtered = filtered.filter((t: ExpenseItem) => t.accountId === accountId);
+      }
+
+      setAllFilteredTransactions(filtered);
+    } catch (error) {
+      console.error('Failed to load all filtered transactions:', error);
+      setAllFilteredTransactions([]);
+    }
+  }, [dateRange, selectedCategory, selectedItem, selectedAccount, formatCurrency]);
+
   // Load initial data
   useEffect(() => {
     loadCategories();
-    loadTransactions();
+    loadTransactions(currentPage, itemsPerPage);
+    loadSummary();
     accountsApi.getActive().then(setAccounts).catch(console.error);
-  }, [loadCategories, loadTransactions]);
+  }, [loadCategories, loadSummary, currentPage, itemsPerPage]);
 
   // Update items when category changes
   useEffect(() => {
@@ -53,6 +135,16 @@ const Expenses = () => {
       setSelectedItem("all");
     }
   }, [selectedCategory, loadItems]);
+
+  // Load all filtered transactions when filters change
+  useEffect(() => {
+    const hasFilters = selectedCategory !== "all" || selectedItem !== "all" || selectedAccount !== "all" || !!(dateRange.from || dateRange.to);
+    if (hasFilters) {
+      loadAllFilteredTransactions();
+    } else {
+      setAllFilteredTransactions([]);
+    }
+  }, [selectedCategory, selectedItem, selectedAccount, dateRange.from, dateRange.to]);
 
   // Filter and sort transactions
   const filteredAndSortedTransactions = useMemo(() => {
@@ -103,19 +195,21 @@ const Expenses = () => {
 
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range);
+    setCurrentPage(0); // Reset to first page when date range changes
     if (range.from && range.to) {
       const startDate = range.from.toISOString().split('T')[0];
       const endDate = range.to.toISOString().split('T')[0];
       loadTransactionsByDateRange(startDate, endDate);
     } else {
-      loadTransactions();
+      loadTransactions(0, itemsPerPage);
     }
     setIsDateRangePickerOpen(false);
   };
 
   const clearDateRange = () => {
     setDateRange({ from: undefined, to: undefined });
-    loadTransactions();
+    setCurrentPage(0);
+    loadTransactions(0, itemsPerPage);
   };
 
   const handleEdit = (expense: ExpenseItem) => {
@@ -131,7 +225,11 @@ const Expenses = () => {
   const handleUpdateExpense = async (id: number, payload: { amount: number; transactionDate: string; accountId: number; categoryId: number; categoryItemId: number }) => {
     try {
       await updateTransaction(id, payload);
-      loadTransactions();
+      // Reload filtered totals if filters are active
+      const hasFilters = selectedCategory !== "all" || selectedItem !== "all" || selectedAccount !== "all" || !!(dateRange.from || dateRange.to);
+      if (hasFilters) {
+        loadAllFilteredTransactions();
+      }
       setIsEditExpenseOpen(false);
       setSelectedExpense(null);
       toast({
@@ -151,7 +249,12 @@ const Expenses = () => {
     if (!selectedExpense) return;
     try {
       await deleteTransaction(selectedExpense.id);
-      loadTransactions();
+      loadTransactions(currentPage, itemsPerPage);
+      // Reload filtered totals if filters are active
+      const hasFilters = selectedCategory !== "all" || selectedItem !== "all" || selectedAccount !== "all" || !!(dateRange.from || dateRange.to);
+      if (hasFilters) {
+        loadAllFilteredTransactions();
+      }
       setIsDeleteExpenseOpen(false);
       setSelectedExpense(null);
       toast({
@@ -275,12 +378,54 @@ const Expenses = () => {
             />
           )}
         </CardContent>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-6 py-4 border-top border-t">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="items-per-page" className="text-sm">Show</Label>
+              <Select value={String(itemsPerPage)} onValueChange={(v) => { setItemsPerPage(parseInt(v)); setCurrentPage(0); }}>
+                <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">per page</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Showing {start} to {end} of {total} expenses
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.max(0, p - 1))} disabled={currentPage === 0}>
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {totalPages > 0 && Array.from({ length: Math.min(totalPages, 10) }, (_, i) => i).map((page) => (
+                <Button key={page}
+                        variant={currentPage === page ? "secondary" : "outline"}
+                        size="sm" className="w-8 h-8 p-0"
+                        onClick={() => setCurrentPage(page)}>
+                  {page + 1}
+                </Button>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.min(Math.max(totalPages - 1, 0), p + 1))} disabled={currentPage >= totalPages - 1 || totalPages <= 1}>
+              Next <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </Card>
 
       {/* Total Expenses */}
       <TotalExpensesCard
         summary={summary}
-        rows={filteredAndSortedTransactions}
+        rows={selectedCategory !== "all" || selectedItem !== "all" || selectedAccount !== "all" || !!(dateRange.from || dateRange.to) ? allFilteredTransactions : undefined}
         useFiltered={selectedCategory !== "all" || selectedItem !== "all" || selectedAccount !== "all" || !!(dateRange.from || dateRange.to)}
       />
 
@@ -288,7 +433,14 @@ const Expenses = () => {
       <AddExpenseDialog
         open={isAddExpenseOpen}
         onOpenChange={setIsAddExpenseOpen}
-        onExpenseAdded={() => loadTransactions()}
+        onExpenseAdded={() => {
+          loadTransactions(currentPage, itemsPerPage);
+          // Reload filtered totals if filters are active
+          const hasFilters = selectedCategory !== "all" || selectedItem !== "all" || selectedAccount !== "all" || !!(dateRange.from || dateRange.to);
+          if (hasFilters) {
+            loadAllFilteredTransactions();
+          }
+        }}
       />
 
       {/* Edit Expense Dialog */}

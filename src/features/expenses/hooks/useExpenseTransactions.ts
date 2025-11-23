@@ -9,6 +9,12 @@ export function useExpenseTransactions(formatCurrency?: (amount: number) => stri
   const [summary, setSummary] = useState<ExpenseTransactionSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 0,
+    totalPages: 0,
+    totalElements: 0,
+    pageSize: 10
+  });
 
   const formatTransactionToExpenseItem = (transaction: ExpenseTransactionItem): ExpenseItem => {
     const date = new Date(transaction.transactionDate);
@@ -36,13 +42,19 @@ export function useExpenseTransactions(formatCurrency?: (amount: number) => stri
     };
   };
 
-  const loadTransactions = useCallback(async (page: number = 0, size: number = 20) => {
+  const loadTransactions = useCallback(async (page: number = 0, size: number = 10) => {
     setLoading(true);
     setError(null);
     try {
       const response: PaginatedResponse<ExpenseTransactionItem> = await expenseTransactionsApi.getAll(page, size);
       const mappedTransactions = response.content.map(formatTransactionToExpenseItem);
       setTransactions(mappedTransactions);
+      setPagination({
+        currentPage: response.number,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        pageSize: response.size
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to load transactions');
       toast({
@@ -150,6 +162,7 @@ export function useExpenseTransactions(formatCurrency?: (amount: number) => stri
     summary,
     loading,
     error,
+    pagination,
     loadTransactions,
     loadSummary,
     loadTransactionsByDateRange,
