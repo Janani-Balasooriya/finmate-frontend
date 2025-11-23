@@ -7,6 +7,7 @@ import { DateRange } from "../types";
 import { formatDateRange } from "../utils/formatDateRange";
 import { useState } from "react";
 import { IncomeSourceItemDto } from "@/lib/incomeSource";
+import { AccountItemDto } from "@/lib/accounts";
 
 type Props = {
   dateRange: DateRange;
@@ -17,6 +18,9 @@ type Props = {
   incomeSources: IncomeSourceItemDto[];
   sourceFilter: string;
   onSourceFilterChange: (v: string) => void;
+  accounts: AccountItemDto[];
+  accountFilter: string;
+  onAccountFilterChange: (v: string) => void;
 };
 
 export function IncomeToolbar({
@@ -28,6 +32,9 @@ export function IncomeToolbar({
   incomeSources,
   sourceFilter,
   onSourceFilterChange,
+  accounts,
+  accountFilter,
+  onAccountFilterChange,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -42,6 +49,20 @@ export function IncomeToolbar({
           {incomeSources.map((source) => (
             <SelectItem key={source.id} value={String(source.id)}>
               {source.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={accountFilter} onValueChange={onAccountFilterChange}>
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="All Accounts" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Accounts</SelectItem>
+          {accounts.map((account) => (
+            <SelectItem key={account.id} value={String(account.id)}>
+              {account.name}
             </SelectItem>
           ))}
         </SelectContent>

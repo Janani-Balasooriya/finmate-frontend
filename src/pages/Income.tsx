@@ -45,11 +45,13 @@ export default function IncomePage() {
   const [dateRange, setDateRange] = useState<DateRange>({});
   const [amountSortOrder, setAmountSortOrder] = useState("recent");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [accountFilter, setAccountFilter] = useState("all");
   const [currentMonthIncome, setCurrentMonthIncome] = useState<number>(0);
 
   // Filter + sort
   const filtered = filterByDateRange(incomeItems, dateRange).filter(item =>
-    sourceFilter === "all" || String(item.sourceId) === sourceFilter
+    (sourceFilter === "all" || String(item.sourceId) === sourceFilter) &&
+    (accountFilter === "all" || String(item.accountId) === accountFilter)
   );
   const sorted = [...filtered].sort((a, b) => {
     const A = a.amountValue ?? 0;
@@ -153,6 +155,9 @@ export default function IncomePage() {
             incomeSources={incomeSources}
             sourceFilter={sourceFilter}
             onSourceFilterChange={setSourceFilter}
+            accounts={accounts}
+            accountFilter={accountFilter}
+            onAccountFilterChange={setAccountFilter}
           />
         </CardHeader>
 
@@ -212,7 +217,7 @@ export default function IncomePage() {
       <TotalIncomeCard
         summary={summary}
         rows={sorted}
-        useFiltered={!!(dateRange.from || dateRange.to) || sourceFilter !== "all"}
+        useFiltered={!!(dateRange.from || dateRange.to) || sourceFilter !== "all" || accountFilter !== "all"}
       />
 
       {/* Dialogs */}

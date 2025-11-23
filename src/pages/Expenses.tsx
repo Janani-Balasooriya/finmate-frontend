@@ -26,6 +26,7 @@ const Expenses = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedItem, setSelectedItem] = useState<string>("all");
+  const [selectedAccount, setSelectedAccount] = useState<string>("all");
   const [amountSortOrder, setAmountSortOrder] = useState("recent");
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [isDateRangePickerOpen, setIsDateRangePickerOpen] = useState(false);
@@ -69,6 +70,12 @@ const Expenses = () => {
       filtered = filtered.filter(t => t.categoryItemId === itemId);
     }
 
+    // Filter by account
+    if (selectedAccount !== "all") {
+      const accountId = parseInt(selectedAccount);
+      filtered = filtered.filter(t => t.accountId === accountId);
+    }
+
     // Sort
     const sorted = [...filtered].sort((a, b) => {
       const A = a.amountValue ?? 0;
@@ -80,7 +87,7 @@ const Expenses = () => {
     });
 
     return sorted;
-  }, [transactions, selectedCategory, selectedItem, amountSortOrder]);
+  }, [transactions, selectedCategory, selectedItem, selectedAccount, amountSortOrder]);
 
   const formatDateRange = () => {
     if (!dateRange.from && !dateRange.to) return "Select date range";
@@ -203,6 +210,20 @@ const Expenses = () => {
               </SelectContent>
             </Select>
 
+            <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Accounts" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Accounts</SelectItem>
+                {accounts.map(account => (
+                  <SelectItem key={account.id} value={account.id.toString()}>
+                    {account.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Popover open={isDateRangePickerOpen} onOpenChange={setIsDateRangePickerOpen}>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-80 justify-start text-left font-normal">
@@ -260,7 +281,7 @@ const Expenses = () => {
       <TotalExpensesCard
         summary={summary}
         rows={filteredAndSortedTransactions}
-        useFiltered={true}
+        useFiltered={selectedCategory !== "all" || selectedItem !== "all" || selectedAccount !== "all" || !!(dateRange.from || dateRange.to)}
       />
 
       {/* Add Expense Dialog */}
