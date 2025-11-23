@@ -29,7 +29,9 @@ export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSour
 
   useEffect(() => {
     if (!row) return;
-    setAmount(row.amountDisplay ? String(row.amountDisplay).replace("Rs. ", "") : "");
+    // Use raw numeric value instead of formatted display
+    const numericAmount = row.amountValue ? String(row.amountValue) : "0";
+    setAmount(numericAmount);
     setSource(String(row.sourceId));
     setAccount(String(row.accountId));
     setDate(row.dateIso);
@@ -37,8 +39,10 @@ export function EditIncomeDialog({ open, onOpenChange, row, accounts, incomeSour
 
   const submit = async () => {
     if (!row) return;
+    // Parse amount by removing currency symbols and commas
+    const cleanAmount = amount.replace(/[^\d.]/g, ''); // Remove everything except digits and decimal point
     const payload = {
-      amount: parseFloat(amount.replace(/,/g, '')),
+      amount: parseFloat(cleanAmount),
       transactionDate: date,
       accountId: parseInt(account),
       incomeSourceId: parseInt(source),
