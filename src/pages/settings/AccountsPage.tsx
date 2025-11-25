@@ -31,7 +31,7 @@ export default function AccountsPage() {
   const [formData, setFormData] = useState({
     name: "",
     currencyCodesId: 0,
-    openingBalance: 0,
+    openingBalance: "",
     active: true
   });
   
@@ -68,10 +68,11 @@ export default function AccountsPage() {
 
   const handleAddAccount = async () => {
     try {
+      const openingBalanceValue = formData.openingBalance === "" ? 0 : parseFloat(formData.openingBalance);
       const createdAccount = await accountsApi.create({
         name: formData.name,
         currencyCodesId: formData.currencyCodesId,
-        openingBalance: formData.openingBalance
+        openingBalance: Number.isNaN(openingBalanceValue) ? 0 : openingBalanceValue
       });
       setAccounts(prev => [...prev, createdAccount]);
       setIsAddModalOpen(false);
@@ -94,10 +95,11 @@ export default function AccountsPage() {
     if (!editingAccount) return;
     
     try {
+      const openingBalanceValue = formData.openingBalance === "" ? 0 : parseFloat(formData.openingBalance);
       const updatedAccount = await accountsApi.update(editingAccount.id, {
         name: formData.name,
         currencyCodesId: formData.currencyCodesId,
-        openingBalance: formData.openingBalance,
+        openingBalance: Number.isNaN(openingBalanceValue) ? 0 : openingBalanceValue,
         active: formData.active
       });
       setAccounts(prev => prev.map(acc => acc.id === editingAccount.id ? updatedAccount : acc));
@@ -146,7 +148,7 @@ export default function AccountsPage() {
     setFormData({
       name: "",
       currencyCodesId: baseCurrency?.id || 0,
-      openingBalance: 0,
+      openingBalance: "",
       active: true
     });
   };
@@ -156,7 +158,7 @@ export default function AccountsPage() {
     setFormData({
       name: account.name,
       currencyCodesId: availableCurrencies.find(cc => cc.code === account.currencyCode)?.id || 0,
-      openingBalance: account.openingBalance,
+      openingBalance: account.openingBalance?.toString() || "",
       active: true
     });
     setIsEditModalOpen(true);
@@ -305,10 +307,15 @@ export default function AccountsPage() {
               <Label htmlFor="add-balance">Opening Balance</Label>
               <Input
                 id="add-balance"
-                type="number"
+                type="text"
                 placeholder="0.00"
                 value={formData.openingBalance}
-                onChange={(e) => setFormData({ ...formData, openingBalance: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^-?\d*\.?\d*$/.test(value)) {
+                    setFormData({ ...formData, openingBalance: value });
+                  }
+                }}
               />
             </div>
           </div>
@@ -371,10 +378,15 @@ export default function AccountsPage() {
               <Label htmlFor="edit-balance">Opening Balance</Label>
               <Input
                 id="edit-balance"
-                type="number"
+                type="text"
                 placeholder="0.00"
                 value={formData.openingBalance}
-                onChange={(e) => setFormData({ ...formData, openingBalance: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^-?\d*\.?\d*$/.test(value)) {
+                    setFormData({ ...formData, openingBalance: value });
+                  }
+                }}
               />
             </div>
           </div>

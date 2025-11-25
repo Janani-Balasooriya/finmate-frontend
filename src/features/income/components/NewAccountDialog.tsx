@@ -20,7 +20,7 @@ export function NewAccountDialog({ open, onOpenChange, currencyCodes, baseCurren
    const availableCurrencies = currencyCodes.filter(currency => currency.code === baseCurrencyCode);
 
    // Set default currency to base currency
-   const [form, setForm] = useState({ name: "", currencyCodesId: 0, openingBalance: 0 });
+   const [form, setForm] = useState({ name: "", currencyCodesId: 0, openingBalance: undefined as string | undefined });
 
    // Initialize form with base currency when modal opens
    React.useEffect(() => {
@@ -31,10 +31,13 @@ export function NewAccountDialog({ open, onOpenChange, currencyCodes, baseCurren
    }, [open, availableCurrencies, form.currencyCodesId]);
 
   const submit = async () => {
-    const created = await onCreate(form);
+    const created = await onCreate({
+      ...form,
+      openingBalance: parseFloat(form.openingBalance || "0") || 0
+    });
     onCreated?.(created.id);
     onOpenChange(false);
-    setForm({ name: "", currencyCodesId: 0, openingBalance: 0 });
+    setForm({ name: "", currencyCodesId: 0, openingBalance: undefined });
   };
 
   return (
@@ -79,10 +82,16 @@ export function NewAccountDialog({ open, onOpenChange, currencyCodes, baseCurren
             <Label htmlFor="opening-balance">Opening Balance</Label>
             <Input
               id="opening-balance"
-              type="number"
-              placeholder="0.00"
-              value={form.openingBalance}
-              onChange={(e) => setForm({ ...form, openingBalance: parseFloat(e.target.value) || 0 })}
+              type="text"
+              placeholder="Enter opening balance"
+              value={form.openingBalance || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Only allow numbers and decimal point
+                if (/^\d*\.?\d*$/.test(value)) {
+                  setForm({ ...form, openingBalance: value || undefined });
+                }
+              }}
             />
           </div>
         </div>
