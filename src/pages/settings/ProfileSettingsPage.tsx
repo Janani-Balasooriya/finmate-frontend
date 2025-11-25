@@ -18,6 +18,7 @@ import { useUser } from "@/contexts/UserContext";
 import { updateFamilyCurrency } from "@/lib/members";
 import { accountsApi, CurrencyCodeDto } from "@/lib/accounts";
 import { cn } from "@/lib/utils";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export function ProfileSettingsPage() {
    const { theme, toggleTheme } = useTheme();
@@ -27,6 +28,7 @@ export function ProfileSettingsPage() {
    const [selectedCurrency, setSelectedCurrency] = useState(baseCurrencyCode);
    const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
    const [currencies, setCurrencies] = useState<CurrencyCodeDto[]>([]);
+   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
    const [profile, setProfile] = useState({
      name: "John Doe",
      email: "john@example.com",
@@ -79,24 +81,36 @@ export function ProfileSettingsPage() {
      return currencyMap[code] || { name: code, symbol: code };
    };
 
-  const handleSave = async () => {
+  const handleSave = () => {
+    if (selectedCurrency !== baseCurrencyCode) {
+      setIsConfirmOpen(true);
+      return;
+    }
+
+    toast({
+      title: "Settings saved",
+      description: "Your profile settings have been updated successfully.",
+    });
+  };
+
+  const confirmCurrencyChange = async () => {
+    if (!user?.families?.id) {
+      toast({
+        title: "Error",
+        description: "Family not found. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Update family currency if it changed
-      if (selectedCurrency !== baseCurrencyCode && user?.families?.id) {
-        await updateFamilyCurrency(user.families.id.toString(), selectedCurrency);
-        toast({
-          title: "Currency updated",
-          description: "Your family's base currency has been updated successfully.",
-        });
-        // Refresh the page to update the currency context
-        window.location.reload();
-      } else {
-        toast({
-          title: "Settings saved",
-          description: "Your profile settings have been updated successfully.",
-        });
-      }
+      await updateFamilyCurrency(user.families.id.toString(), selectedCurrency);
+      toast({
+        title: "Currency updated",
+        description: "Your family's base currency has been updated successfully.",
+      });
+      window.location.reload();
     } catch (error) {
       toast({
         title: "Error",
@@ -105,6 +119,7 @@ export function ProfileSettingsPage() {
       });
     } finally {
       setIsLoading(false);
+      setIsConfirmOpen(false);
     }
   };
 
@@ -297,8 +312,29 @@ export function ProfileSettingsPage() {
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
            </div>
-         </CardContent>
-       </Card>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change base currency?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Changing the base currency will remove all recorded transactions, accounts, and budget plans. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={confirmCurrencyChange}
+              disabled={isLoading}
+            >
+              Confirm change
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Appearance */}
       <Card>
