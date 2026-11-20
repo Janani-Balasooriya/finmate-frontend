@@ -1,69 +1,66 @@
-# React + TypeScript + Vite
+# FinMate – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**FinMate** is a personal and family finance management app that helps households track income and expenses, plan budgets, manage subscriptions and work toward shared savings goals.
 
-Currently, two official plugins are available:
+This repository contains the **React + TypeScript** web client. The Spring Boot API lives in **[finmate-backend](https://github.com/Janani-Balasooriya/finmate-backend)**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **Dashboard:** monthly income, expenses and net savings at a glance, with income-vs-expense trends, budget-vs-actual spending, cash-flow analysis, category trends and a spending breakdown.
+- **Key Insights:** automatic alerts for budgets at risk (with an end-of-month spend forecast), upcoming subscription renewals, possible duplicate charges, and savings rate against target.
+- **Budgets:** per-category monthly budgets with spent, remaining and progress tracking.
+- **Income & Expenses:** add, edit and categorise transactions.
+- **Subscriptions:** track recurring payments, billing dates and the account they're charged to.
+- **Shared Goals:** savings goals the whole family can contribute to.
+- **Family accounts:** invite family members, with role-based access (Admin / Member) enforced by the backend.
+- **Settings:** with confirmation before destructive actions such as clearing all data.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Screenshots
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**FinMate dashboard**
+<img width="1920" height="2330" alt="image" src="https://github.com/user-attachments/assets/3896892e-8539-4f53-877c-c1f6ff80c8fe" />
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+**Budgets** 
+<img width="1920" height="1552" alt="image" src="https://github.com/user-attachments/assets/c09a54f4-7058-490d-ae9a-bd09b851ee23"/>
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Subscriptions**
+<img width="1920" height="970" alt="image" src="https://github.com/user-attachments/assets/6028b747-5f08-42d6-8381-159a2b788ac8" />
+
+
+## Tech stack
+
+- React + TypeScript
+- Vite
+- Tailwind CSS with a shadcn/ui-style component setup
+- REST integration with a JWT-secured Spring Boot API
+- ESLint
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 18+
+- The [FinMate backend](https://github.com/Janani-Balasooriya/finmate-backend) running locally (default `http://localhost:8080`)
+
+### Run locally
+
+```bash
+git clone https://github.com/Janani-Balasooriya/finmate-frontend.git
+cd finmate-frontend
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Then open the URL Vite prints (usually `http://localhost:5173`).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Build for production
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
+npm run preview
 ```
+
+## Author
+
+**Janani Balasooriya**: designed and built FinMate end to end (frontend and backend).
+[GitHub](https://github.com/Janani-Balasooriya) · [LinkedIn](https://linkedin.com/in/janani-balasooriya)
